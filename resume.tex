@@ -1,0 +1,560 @@
+\documentclass[10pt, letterpaper]{article}
+
+% Packages:
+\usepackage[
+    ignoreheadfoot,
+    top=2cm,
+    bottom=2cm,
+    left=2cm,
+    right=2cm,
+    footskip=1.0cm,
+]{geometry}
+\usepackage{titlesec}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage[dvipsnames]{xcolor}
+\definecolor{primaryColor}{RGB}{0, 79, 144}
+\usepackage{enumitem}
+\usepackage{fontawesome5}
+\usepackage{amsmath}
+\usepackage[
+    pdftitle={Joseph Emmanuel Chay Huan Qin's Resume},
+    pdfauthor={Joseph Emmanuel Chay Huan Qin},
+    pdfcreator={LaTeX with RenderCV},
+    colorlinks=true,
+    urlcolor=primaryColor
+]{hyperref}
+\usepackage[pscoord]{eso-pic}
+\usepackage{calc}
+\usepackage{bookmark}
+\usepackage{lastpage}
+\usepackage{changepage}
+\usepackage{paracol}
+\usepackage{ifthen}
+\usepackage{needspace}
+\usepackage{iftex}
+
+\ifPDFTeX
+    \input{glyphtounicode}
+    \pdfgentounicode=1
+    \usepackage[utf8]{inputenc}
+    \usepackage{lmodern}
+\fi
+
+\AtBeginEnvironment{adjustwidth}{\partopsep0pt}
+\pagestyle{empty}
+\setcounter{secnumdepth}{0}
+\setlength{\parindent}{0pt}
+\setlength{\topskip}{0pt}
+\setlength{\columnsep}{0cm}
+\makeatletter
+\let\ps@customFooterStyle\ps@plain
+\patchcmd{\ps@customFooterStyle}{\thepage}{
+    \color{gray}\textit{\small Joseph Emmanuel Chay Huan Qin - Page \thepage{} of \pageref*{LastPage}}
+}{}{}
+\makeatother
+\pagestyle{customFooterStyle}
+
+\titleformat{\section}{\needspace{4\baselineskip}\bfseries\large}{}{0pt}{}[\vspace{1pt}\titlerule]
+\titlespacing{\section}{-1pt}{0.3cm}{0.2cm}
+
+\renewcommand\labelitemi{$\circ$}
+\newenvironment{highlights}{
+    \begin{itemize}[
+        topsep=0.10cm,
+        parsep=0.10cm,
+        partopsep=0pt,
+        itemsep=0pt,
+        leftmargin=0.4cm + 10pt
+    ]
+}{
+    \end{itemize}
+}
+\newenvironment{onecolentry}{
+    \begin{adjustwidth}{0.2cm + 0.00001cm}{0.2cm + 0.00001cm}
+}{
+    \end{adjustwidth}
+}
+\newenvironment{twocolentry}[2][]{
+    \onecolentry
+    \def\secondColumn{#2}
+    \setcolumnwidth{\fill, 4.5cm}
+    \begin{paracol}{2}
+}{
+    \switchcolumn \raggedleft \secondColumn
+    \end{paracol}
+    \endonecolentry
+}
+\newenvironment{header}{
+    \setlength{\topsep}{0pt}\par\kern\topsep\centering\linespread{1.5}
+}{
+    \par\kern\topsep
+}
+\newcommand{\placelastupdatedtext}{
+  \AddToShipoutPictureFG*{
+    \put(
+        \LenToUnit{\paperwidth-2cm-0.2cm+0.05cm},
+        \LenToUnit{\paperheight-1.0cm}
+    ){\vtop{{\null}\makebox[0pt][c]{
+        \small\color{gray}\textit{Last updated in September 2024}\hspace{\widthof{Last updated in September 2024}}
+    }}}
+  }
+}
+\let\hrefWithoutArrow\href
+\renewcommand{\href}[2]{\hrefWithoutArrow{#1}{\ifthenelse{\equal{#2}{}}{ }{#2 }\raisebox{.15ex}{\footnotesize \faExternalLink*}}}
+
+\begin{document}
+    \newcommand{\AND}{\unskip
+        \cleaders\copy\ANDbox\hskip\wd\ANDbox
+        \ignorespaces
+    }
+    \newsavebox\ANDbox
+    \sbox\ANDbox{}
+
+    \placelastupdatedtext
+    \begin{header}
+        \textbf{\fontsize{24 pt}{24 pt}\selectfont JOSEPH CHAY}
+
+        \vspace{0.3cm}
+
+        \normalsize
+        \mbox{{\color{black}\footnotesize\faPhone*}\hspace*{0.13cm}(+60) 16-313-9132}%
+        \kern 0.25cm%
+        \AND%
+        \kern 0.25cm%
+        \mbox{\hrefWithoutArrow{mailto:josephemmanuelchay@gmail.com}{\color{black}{\footnotesize\faEnvelope[regular]}\hspace*{0.13cm}josephemmanuelchay@gmail.com}}%
+        \kern 0.25cm%
+        \AND%
+        \kern 0.25cm%
+        \mbox{\hrefWithoutArrow{https://github.com/josephchay}{\color{black}{\footnotesize\faGithub}\hspace*{0.13cm}github.com/josephchay}}%
+    \end{header}
+
+    \vspace{0.3cm - 0.3cm}
+
+    % EDUCATION
+    \section{Education}
+
+    \begin{twocolentry}{
+        \textit{Sep 2023 -- present}
+    }
+        \textbf{University of Nottingham}
+
+        \textit{BSc (Hons). Computer Science with Artificial Intelligence}
+    \end{twocolentry}
+    \vspace{0.10cm}
+    \begin{onecolentry}
+        \begin{highlights}
+            \item Score: 76\% (First Class)
+        \end{highlights}
+    \end{onecolentry}
+
+    \vspace{0.10cm}
+    \begin{twocolentry}{
+        \textit{Dec 2020 -- Mar 2023}
+    }
+        \textbf{Asia Pacific University of Technology and Innovation}
+
+        \textit{Dip. Information and Communication Technology with Software Engineering}
+    \end{twocolentry}
+    \vspace{0.10cm}
+    \begin{onecolentry}
+        \begin{highlights}
+            \item CGPA: 3.89/4.00 \hspace{0.5cm} GPA: 3.93/4.00
+        \end{highlights}
+    \end{onecolentry}
+
+    \vspace{0.10cm}
+    \begin{twocolentry}{
+        \textit{Sep 2016 -- May 2020}
+    }
+        \textbf{Regent International School}
+
+        \textit{IGCSE}
+    \end{twocolentry}
+    \vspace{0.10cm}
+    \begin{onecolentry}
+        \begin{highlights}
+            \item Grades: 3A*, 5A, 2B
+        \end{highlights}
+    \end{onecolentry}
+
+    % INDUSTRIAL EXPERIENCE
+    \section{Industrial Experience}
+
+    \begin{twocolentry}{
+        \textit{Feb 2023 -- Aug 2023}
+    }
+        \textbf{IPS Software Sdn Bhd}
+
+        \textit{Software Developer}
+    \end{twocolentry}
+    \vspace{0.10cm}
+    \begin{onecolentry}
+        \begin{highlights}
+            \item Responsive web and mobile applications for local businesses
+            \item Designed and maintained POS systems infrastructure
+            \item RESTful APIs with Postman for cross-platform functionality
+            \item Payment gateway solutions with MasterCard and Visa
+        \end{highlights}
+    \end{onecolentry}
+    \vspace{0.10cm}
+    \begin{twocolentry}{
+        \textit{Feb 2023 -- Aug 2023}
+    }
+        \textbf{IPS Software Sdn Bhd}
+
+        \textit{AI Developer}
+    \end{twocolentry}
+    \vspace{0.10cm}
+    \begin{onecolentry}
+        \begin{highlights}
+            \item BERT-based chatbot with style transfers
+            \item CNN-based facial recognition for POS
+            \item YOLO-based real-time document forgery detection
+            \item GAN architecture for customer behavior segmentation
+            \item RNN-based anomaly detection for transaction patterns
+            \item ResNet-based biometric verification system
+        \end{highlights}
+    \end{onecolentry}
+
+    \vspace{0.10cm}
+    \begin{twocolentry}{
+        \textit{Dec 2022 -- Feb 2023}
+    }
+        \textbf{Spectrum Edge Sdn Bhd}
+
+        \textit{Cybersecurity Developer}
+    \end{twocolentry}
+    \vspace{0.10cm}
+    \begin{onecolentry}
+        \begin{highlights}
+            \item Technical Solutionist for Fortinet, A10, and InfoBlox solutions
+            \item Security POC projects for client environments
+            \item Implemented and maintained enterprise network security solutions
+            \item Firewall rules configuration and security policies
+            \item Intrusion detection / prevention systems (IDS/IPS)
+            \item PEN testing software and technical processes
+            \item Coordinated with stakeholders on project deliverables
+        \end{highlights}
+    \end{onecolentry}
+
+    % HONOURS & AWARDS
+    \section{Honours \& Awards}
+
+    \begin{onecolentry}
+        \textbf{EthKL Devcon Hackathon, First Prize Winner} \hfill Oct 2024
+    \end{onecolentry}
+    \begin{onecolentry}
+        \textbf{ABRSM Piano Grade 8, Passed with Distinction} \hfill Jul 2019
+    \end{onecolentry}
+
+    % CLIENT PROJECTS
+    \section{Client Projects}
+
+    \begin{twocolentry}{
+        \textit{Sep 2024 -- present}
+    }
+        \textbf{Yamaha Music Generation, Music Synthesis AI}
+    \end{twocolentry}
+    \vspace{0.10cm}
+    \begin{onecolentry}
+        \textit{Machine Learning, Fundamental AI, Generative Modelling, Diffusion Frameworks}
+        \begin{highlights}
+            \item Stack: PyTorch, Diffusion, Rectified Flow Transformers, U-Nets, Fourier Transforms
+        \end{highlights}
+    \end{onecolentry}
+
+    \vspace{0.10cm}
+    \begin{twocolentry}{
+        \textit{Jun 2024 -- Aug 2024}
+    }
+        \textbf{Ochi Design, Strategic Presentation Agency}
+    \end{twocolentry}
+    \vspace{0.10cm}
+    \begin{onecolentry}
+        \begin{highlights}
+            \item Concept, Design. Portfolio, Micro Interactions, Database, Deployment
+            \item Stack: NextJS, TailwindCSS, Framer Motion, GSAP, Locomotive Scroll
+        \end{highlights}
+    \end{onecolentry}
+
+    \vspace{0.10cm}
+    \begin{twocolentry}{
+        \textit{Mar 2024 -- Jun 2024}
+    }
+        \textbf{Vixta Fashion Studio, Malaysian Fashion Designer Studio}
+    \end{twocolentry}
+    \vspace{0.10cm}
+    \begin{onecolentry}
+        \begin{highlights}
+            \item Concept, Design. Portfolio, Micro Interactions, Deployment
+            \item Stack: VueJS, TailwindCSS, Yarn, Framer Motion, GSAP
+        \end{highlights}
+    \end{onecolentry}
+
+    \vspace{0.10cm}
+    \begin{twocolentry}{
+        \textit{Apr 2024 -- May 2024}
+    }
+        \textbf{Jessica Bauer Conte, YouTuber and Vlogger}
+    \end{twocolentry}
+    \vspace{0.10cm}
+    \begin{onecolentry}
+        \begin{highlights}
+            \item Concept, Design, Portfolio, Micro Interactions, Deployment
+            \item Stack: VueJS, TailwindCSS, Yarn, Framer Motion, GSAP
+        \end{highlights}
+    \end{onecolentry}
+
+    % PERSONAL PROJECTS
+    \section{Personal Projects}
+
+    \begin{twocolentry}{
+        \textit{Sep 2024 -- Dec 2024}
+    }
+        \textbf{Stable Adaptive Decompositional LDAS}
+    \end{twocolentry}
+    \vspace{0.10cm}
+    \begin{onecolentry}
+        \textit{Reinforcement Learning, Exploration \& Exploitation Strategies, MuJoCo, OpenAI Gymnasium}
+        \begin{highlights}
+            \item Stack: PyTorch, Anaconda, LDAS, Action Selection (Spectral-Approach), Denoising, SME Loss
+            \item Environments solved within leaderboard defined thresholds:
+            \begin{itemize}[leftmargin=1.2em,topsep=0pt,itemsep=0pt,parsep=0pt]
+                \item Mountain Car Continuous (Version 0)
+                \item Lunar Lander Continuous (Version 3)
+                \item Pendulum (Version 1)
+                \item Cart Pole (Version 1)
+                \item Bipedal Walker (Version 3)
+                \item Ant (Version 5)
+                \item Half Cheetah (Version 5)
+                \item Hopper (Version 5)
+                \item Pusher (Version 5)
+                \item Walker 2D (Version 5)
+                \item Humanoid (Version 5)
+            \end{itemize}
+        \end{highlights}
+    \end{onecolentry}
+
+    \vspace{0.10cm}
+    \begin{twocolentry}{
+        \textit{Sep 2024 -- Dec 2024}
+    }
+        \textbf{Workflow Satisfiability Problem}
+    \end{twocolentry}
+    \vspace{0.10cm}
+    \begin{onecolentry}
+        \textit{Constraint Satisfaction, Tooling solvers, Encoding Patterns, Mathematical Formulations}
+        \begin{highlights}
+            \item Stack: Python, Genetic Evolutionary, Metaheuristic, Pigeonhole Principle, Bayesian Network
+        \end{highlights}
+    \end{onecolentry}
+
+    \vspace{0.10cm}
+    \begin{twocolentry}{
+        \textit{Oct 2024}
+    }
+        \textbf{Deepfake Guardian, On-Chain Content Detection Security}
+    \end{twocolentry}
+    \vspace{0.10cm}
+    \begin{onecolentry}
+        \textit{Deepfake Detection, Smart Contracts, On-Chain Security, ICP Canister, Computer Vision}
+        \begin{highlights}
+            \item Stack: Solidity, Sepolia, Testnet, PyTorch, Rust, Shell, NextJS
+        \end{highlights}
+    \end{onecolentry}
+
+    \vspace{0.10cm}
+    \begin{twocolentry}{
+        \textit{May 2024}
+    }
+        \textbf{Soccer Analyzer, Player Performance, Ball Tracking and Prediction}
+    \end{twocolentry}
+    \vspace{0.10cm}
+    \begin{onecolentry}
+        \textit{Computer Vision, Object Detection, Occlusion, Position and Speed Tracking, Clustering}
+        \begin{highlights}
+            \item Stack: PyTorch, YOLOv5, OpenCV
+        \end{highlights}
+    \end{onecolentry}
+
+    \vspace{0.10cm}
+    \begin{twocolentry}{
+        \textit{Nov 2023 -- May 2024}
+    }
+        \textbf{Stable Diffusion with DDPM Sampler, Image Generation Pipeline}
+    \end{twocolentry}
+    \vspace{0.10cm}
+    \begin{onecolentry}
+        \textit{Pipeline, Unconditional Generation, Text-to-Image, Image-to-Image}
+        \begin{highlights}
+            \item Stack: PyTorch, DDPM, VAE, CLIP, Cross Attention, Diffusion
+        \end{highlights}
+    \end{onecolentry}
+
+    \vspace{0.10cm}
+    \begin{twocolentry}{
+        \textit{Sep 2023 -- May 2024}
+    }
+        \textbf{Smart Fridge, Fridge Surveillance and Meal Planner}
+    \end{twocolentry}
+    \vspace{0.10cm}
+    \begin{onecolentry}
+        \textit{Machine Learning, App Development, Computer Vision, Object Detection}
+        \begin{highlights}
+            \item Stack: Pytorch, TensorFlow, Flutter, Dart, Swift, Kotlin, InnoDB
+        \end{highlights}
+    \end{onecolentry}
+
+    \vspace{0.10cm}
+    \begin{twocolentry}{
+        \textit{Apr 2024 -- May 2024}
+    }
+        \textbf{Bin Packing Problem, Single Dimension, NP-Hard}
+    \end{twocolentry}
+    \vspace{0.10cm}
+    \begin{onecolentry}
+        \textit{First-Fit Decreasing, Tabu Search, Genetic Meta-heuristic, Simulated Annealing}
+        \begin{highlights}
+            \item Stack: Java, Heuristics, Meta-heuristics, Search Strategies
+        \end{highlights}
+    \end{onecolentry}
+
+    \vspace{0.10cm}
+    \begin{twocolentry}{
+        \textit{Feb 2024 -- Apr 2024}
+    }
+        \textbf{Garbage Management System, Optimal Path Finder}
+    \end{twocolentry}
+    \vspace{0.10cm}
+    \begin{onecolentry}
+        \textit{Greedy Algorithm, Optimized Algorithms, Travelling Salesman Problem Algorithm}
+        \begin{highlights}
+            \item Stack: C, C++, Cmake, Route Finding Algorithms, Database
+        \end{highlights}
+    \end{onecolentry}
+
+    \vspace{0.10cm}
+    \begin{twocolentry}{
+        \textit{Jan 2024 -- Mar 2024}
+    }
+        \textbf{Inventory Management System, Blockchain Security Procedures}
+    \end{twocolentry}
+    \vspace{0.10cm}
+    \begin{onecolentry}
+        \textit{Blockchain, Supply Chain Management, Block Mining, User Role Management}
+        \begin{highlights}
+            \item Stack: C, C++, Cmake, Block Header, Merkle Root, Nonce Setting, Block Mining, Hashing
+        \end{highlights}
+    \end{onecolentry}
+
+    \vspace{0.10cm}
+    \begin{twocolentry}{
+        \textit{Feb 2024}
+    }
+        \textbf{Docket Notes, Interactive Note Taking and Diary Application}
+    \end{twocolentry}
+    \vspace{0.10cm}
+    \begin{onecolentry}
+        \textit{Design, Development, Database, Deployment}
+        \begin{highlights}
+            \item Stack: ReactJS, JavaScript, TailwindCSS, xState, Framer Motion, AnimeJS, GSAP
+        \end{highlights}
+    \end{onecolentry}
+
+    \vspace{0.10cm}
+    \begin{twocolentry}{
+        \textit{Feb 2024}
+    }
+        \textbf{JotIt, Interactive Note Taking and Diary Application}
+    \end{twocolentry}
+    \vspace{0.10cm}
+    \begin{onecolentry}
+        \textit{Design, Development, Database, Deployment}
+        \begin{highlights}
+            \item Stack: ReactJS, Vite, JavaScript, TailwindCSS, Framer Motion, GSAP
+        \end{highlights}
+    \end{onecolentry}
+
+    \vspace{0.10cm}
+    \begin{twocolentry}{
+        \textit{Dec 2023 -- Jan 2024}
+    }
+        \textbf{Bricksthetics, Interactive Aesthetic Brick-breaker}
+    \end{twocolentry}
+    \vspace{0.10cm}
+    \begin{onecolentry}
+        \textit{Game Development, Applied Mathematics, Micro Interactions}
+        \begin{highlights}
+            \item Stack: Java, HTML, Maven, SFX, Particle Systems
+        \end{highlights}
+    \end{onecolentry}
+
+    % PROFICIENCY AND TOOLS
+    \section{Proficiency and Tools}
+
+    \begin{twocolentry}{
+        \textit{}
+    }
+        \textbf{Algorithmic Programming Languages and Frameworks}
+    \end{twocolentry}
+    \vspace{0.10cm}
+    \begin{onecolentry}
+        \begin{highlights}
+            \item C, C++, Java, Python
+            \item PyTorch, TensorFlow
+            \item Anaconda, Jupyter, Google Colab, Matlab
+            \item Matplotlib, Matlab, Latex
+        \end{highlights}
+    \end{onecolentry}
+
+    \vspace{0.10cm}
+    \begin{twocolentry}{
+        \textit{}
+    }
+        \textbf{Application Development Languages and Frameworks}
+    \end{twocolentry}
+    \vspace{0.10cm}
+    \begin{onecolentry}
+        \begin{highlights}
+            \item Frontend (HTML, React, Next, Vue, TypeScript, JavaScript, Node, jQuery)
+            \item Database Frameworks (PHP, MYSQL, Laravel)
+            \item Stylings (CSS, SASS, Tailwind, Bootstrap)
+            \item Animations (GSAP, Framer Motion, LocomotiveScroll, ScrollTrigger)
+        \end{highlights}
+    \end{onecolentry}
+
+    \vspace{0.10cm}
+    \begin{twocolentry}{
+        \textit{}
+    }
+        \textbf{Miscellaneous Tools and Frameworks}
+    \end{twocolentry}
+    \vspace{0.10cm}
+    \begin{onecolentry}
+        \begin{highlights}
+            \item Version Control Systems (GitHub, Bitbucket)
+            \item Command-Line (Git, Bash, PowerShell)
+            \item IDEs (VsCode, Intellij, IDLE)
+        \end{highlights}
+    \end{onecolentry}
+
+    % LANGUAGES
+    \section{Languages -- Spoken and Written}
+
+    \begin{twocolentry}{
+        \textit{}
+    }
+        \textbf{Languages}
+    \end{twocolentry}
+    \vspace{0.10cm}
+    \begin{onecolentry}
+        \begin{highlights}
+            \item English (Very Proficient)
+            \item Mandarin (Proficient)
+            \item Cantonese (Proficient)
+            \item Malay (Proficient)
+        \end{highlights}
+    \end{onecolentry}
+
+\end{document}
