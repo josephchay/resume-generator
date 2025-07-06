@@ -18,13 +18,13 @@
 \usepackage{fontawesome5}
 \usepackage{amsmath}
 \usepackage[
-    pdftitle={Joseph Emmanuel Chay Huan Qin's Resume},
+    pdftitle={Joseph Emmanuel Chay Huan Qin's CV},
     pdfauthor={Joseph Emmanuel Chay Huan Qin},
     pdfcreator={LaTeX with RenderCV},
     colorlinks=true,
     urlcolor=primaryColor
 ]{hyperref}
-\usepackage[pscoord]{eso-pic}
+\usepackage{fancyhdr}
 \usepackage{calc}
 \usepackage{bookmark}
 \usepackage{lastpage}
@@ -42,18 +42,19 @@
 \fi
 
 \AtBeginEnvironment{adjustwidth}{\partopsep0pt}
-\pagestyle{empty}
 \setcounter{secnumdepth}{0}
 \setlength{\parindent}{0pt}
 \setlength{\topskip}{0pt}
 \setlength{\columnsep}{0cm}
-\makeatletter
-\let\ps@customFooterStyle\ps@plain
-\patchcmd{\ps@customFooterStyle}{\thepage}{
-    \color{gray}\textit{\small Joseph Emmanuel Chay Huan Qin - Page \thepage{} of \pageref*{LastPage}}
-}{}{}
-\makeatother
-\pagestyle{customFooterStyle}
+
+% --- Footer Redefinition ---
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[C]{\color{gray}\textit{\small Joseph Emmanuel Chay Huan Qin}}
+\fancyfoot[R]{\color{gray}\textit{\small Page \thepage\ of \pageref*{LastPage}}}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+% ---------------------------
 
 \titleformat{\section}{\needspace{4\baselineskip}\bfseries\large}{}{0pt}{}[\vspace{1pt}\titlerule]
 \titlespacing{\section}{-1pt}{0.3cm}{0.2cm}
@@ -90,16 +91,6 @@
 }{
     \par\kern\topsep
 }
-\newcommand{\placelastupdatedtext}{
-  \AddToShipoutPictureFG*{
-    \put(
-        \LenToUnit{\paperwidth-2cm-0.2cm+0.05cm},
-        \LenToUnit{\paperheight-1.0cm}
-    ){\vtop{{\null}\makebox[0pt][c]{
-        \small\color{gray}\textit{Last updated in September 2024}\hspace{\widthof{Last updated in September 2024}}
-    }}}
-  }
-}
 \let\hrefWithoutArrow\href
 \renewcommand{\href}[2]{\hrefWithoutArrow{#1}{\ifthenelse{\equal{#2}{}}{ }{#2 }\raisebox{.15ex}{\footnotesize \faExternalLink*}}}
 
@@ -111,7 +102,6 @@
     \newsavebox\ANDbox
     \sbox\ANDbox{}
 
-    \placelastupdatedtext
     \begin{header}
         \textbf{\fontsize{24 pt}{24 pt}\selectfont JOSEPH CHAY}
 
@@ -126,7 +116,11 @@
         \kern 0.25cm%
         \AND%
         \kern 0.25cm%
+        \mbox{\hrefWithoutArrow{https://my.linkedin.com/in/josephchay}{\color{black}{\footnotesize\faLinkedinIn}\hspace*{0.13cm}linkedin.com/in/josephchay}}%
+        \AND%
+        \kern 0.25cm%
         \mbox{\hrefWithoutArrow{https://github.com/josephchay}{\color{black}{\footnotesize\faGithub}\hspace*{0.13cm}github.com/josephchay}}%
+        \kern 0.25cm%
     \end{header}
 
     \vspace{0.3cm - 0.3cm}
