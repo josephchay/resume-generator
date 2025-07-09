@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.3) (preloaded format=pdflatex 2025.4.27)  9 JUL 2025 17:42
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.3) (preloaded format=pdflatex 2025.4.27)  9 JUL 2025 21:58
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -499,7 +499,7 @@ LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `bold'
 (Font)                  OT1/cmtt/m/n --> OT1/lmtt/m/n on input line 38.
 )
 LaTeX Font Info:    Trying to load font information for OT1+lmr on input line 1
-18.
+11.
 
 (C:\Users\joseph\AppData\Local\Programs\MiKTeX\tex/latex/lm\ot1lmr.fd
 File: ot1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
@@ -507,24 +507,24 @@ File: ot1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 (resume.aux)
 \openout1 = `resume.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 118.
-LaTeX Font Info:    ... okay on input line 118.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 118.
-LaTeX Font Info:    ... okay on input line 118.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 118.
-LaTeX Font Info:    ... okay on input line 118.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 118.
-LaTeX Font Info:    ... okay on input line 118.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 118.
-LaTeX Font Info:    ... okay on input line 118.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 118.
-LaTeX Font Info:    ... okay on input line 118.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 118.
-LaTeX Font Info:    ... okay on input line 118.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 118.
-LaTeX Font Info:    ... okay on input line 118.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 118.
-LaTeX Font Info:    ... okay on input line 118.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 111.
+LaTeX Font Info:    ... okay on input line 111.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 111.
+LaTeX Font Info:    ... okay on input line 111.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 111.
+LaTeX Font Info:    ... okay on input line 111.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 111.
+LaTeX Font Info:    ... okay on input line 111.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 111.
+LaTeX Font Info:    ... okay on input line 111.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 111.
+LaTeX Font Info:    ... okay on input line 111.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 111.
+LaTeX Font Info:    ... okay on input line 111.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 111.
+LaTeX Font Info:    ... okay on input line 111.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 111.
+LaTeX Font Info:    ... okay on input line 111.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -576,55 +576,55 @@ kii
 \makeMPintoPDFobject=\count323
 \everyMPtoPDFconversion=\toks33
 )
-Package hyperref Info: Link coloring ON on input line 118.
+Package hyperref Info: Link coloring ON on input line 111.
 \ANDbox=\box66
 LaTeX Font Info:    Trying to load font information for U+fontawesomefree2 on i
-nput line 132.
+nput line 125.
 
 (C:\Users\joseph\AppData\Local\Programs\MiKTeX\tex/latex/fontawesome5\ufontawes
 omefree2.fd)
 LaTeX Font Info:    Trying to load font information for U+fontawesomefree1 on i
-nput line 136.
+nput line 129.
 
 (C:\Users\joseph\AppData\Local\Programs\MiKTeX\tex/latex/fontawesome5\ufontawes
 omefree1.fd)
 LaTeX Font Info:    Trying to load font information for U+fontawesomebrands0 on
- input line 140.
+ input line 133.
 
 (C:\Users\joseph\AppData\Local\Programs\MiKTeX\tex/latex/fontawesome5\ufontawes
 omebrands0.fd)
 LaTeX Font Info:    Font shape `U/fontawesomebrands0/solid/n' in size <8> not a
 vailable
 (Font)              Font shape `U/fontawesomebrands0/regular/n' tried instead o
-n input line 140.
+n input line 133.
 LaTeX Font Info:    Trying to load font information for OML+lmm on input line 1
-61.
+54.
 
 (C:\Users\joseph\AppData\Local\Programs\MiKTeX\tex/latex/lm\omllmm.fd
 File: omllmm.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for OMS+lmsy on input line 
-161.
+154.
 
 (C:\Users\joseph\AppData\Local\Programs\MiKTeX\tex/latex/lm\omslmsy.fd
 File: omslmsy.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for OMX+lmex on input line 
-161.
+154.
 
 (C:\Users\joseph\AppData\Local\Programs\MiKTeX\tex/latex/lm\omxlmex.fd
 File: omxlmex.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 161.
+(Font)              <10> on input line 154.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 161.
+(Font)              <7> on input line 154.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 161.
+(Font)              <5> on input line 154.
 
 
 
-LaTeX Warning: Reference `LastPage' on page 1 undefined on input line 282.
+LaTeX Warning: Reference `LastPage' on page 1 undefined on input line 275.
 
 [1
 
@@ -635,42 +635,56 @@ ers/joseph/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/fontawesome5/fa5free1.
 enc}{C:/Users/joseph/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/fontawesome5
 /fa5brands0.enc}{C:/Users/joseph/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/
 lm/lm-mathsy.enc}]
-LaTeX Font Info:    Font shape `U/fontawesomebrands0/solid/n' in size <10> not 
-available
-(Font)              Font shape `U/fontawesomebrands0/regular/n' tried instead o
-n input line 290.
 
 
-! Package fontawesome5 Error: The requested icon external-link was not found.
+LaTeX Warning: Reference `LastPage' on page 2 undefined on input line 459.
 
-For immediate help type H <return>.
- ...                                              
-                                                  
-l.309 ... \weblink{https://ochi-design.vercel.app}
-                                                  
-? 
-! Emergency stop.
- ...                                              
-                                                  
-l.309 ... \weblink{https://ochi-design.vercel.app}
-                                                  
-
-Maybe you mistyped the icon name or you are using the wrong version of Font
-Awesome 5. Please check the Font Awesome Cheatsheet to verify the spelling of
-external-link. If you want to use a Pro icon, you need to have Font Awesome 5
-Pro installed and use XeLaTeX or LuaLaTeX. Then you can activate Pro with the
-[pro] option. If you use XeLaTeX or LuaLaTeX, you can also try updating the
-Font Awesome 5 font files to make icons of newer versions of Font Awesome
-available.
+[2]
 
 
- 
+LaTeX Warning: Reference `LastPage' on page 3 undefined on input line 607.
+
+[3] 
+enddocument/afterlastpage (AED): lastpage setting LastPage.
+(resume.aux)
+ ***********
+LaTeX2e <2024-11-01> patch level 2
+L3 programming layer <2025-01-18>
+ ***********
+
+
+LaTeX Warning: There were undefined references.
+
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+
+Package lastpage Warning: Rerun to get the references right on input line 607.
+
+ ) 
 Here is how much of TeX's memory you used:
- 15517 strings out of 473522
- 267956 string characters out of 5714125
- 689336 words of memory out of 5000000
- 38543 multiletter control sequences out of 15000+600000
- 597800 words of font info for 60 fonts, out of 8000000 for 9000
+ 15519 strings out of 473522
+ 267896 string characters out of 5714125
+ 689208 words of memory out of 5000000
+ 38540 multiletter control sequences out of 15000+600000
+ 596863 words of font info for 57 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,11n,79p,324b,527s stack positions out of 10000i,1000n,20000p,200000b,200000s
-!  ==> Fatal error occurred, no output PDF file produced!
+ 75i,11n,79p,346b,527s stack positions out of 10000i,1000n,20000p,200000b,200000s
+<C:/Users/joseph/AppData/Local/Programs/MiKTeX/fonts/type1/public/fontawesome
+5/FontAwesome5Brands-Regular.pfb><C:/Users/joseph/AppData/Local/Programs/MiKTeX
+/fonts/type1/public/fontawesome5/FontAwesome5Free-Regular.pfb><C:/Users/joseph/
+AppData/Local/Programs/MiKTeX/fonts/type1/public/fontawesome5/FontAwesome5Free-
+Solid.pfb><C:/Users/joseph/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/
+lmbx10.pfb><C:/Users/joseph/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm
+/lmbx12.pfb><C:/Users/joseph/AppData/Local/Programs/MiKTeX/fonts/type1/public/l
+m/lmbx9.pfb><C:/Users/joseph/AppData/Local/Programs/MiKTeX/fonts/type1/public/l
+m/lmr10.pfb><C:/Users/joseph/AppData/Local/Programs/MiKTeX/fonts/type1/public/l
+m/lmri10.pfb><C:/Users/joseph/AppData/Local/Programs/MiKTeX/fonts/type1/public/
+lm/lmri9.pfb><C:/Users/joseph/AppData/Local/Programs/MiKTeX/fonts/type1/public/
+lm/lmsy10.pfb>
+Output written on resume.pdf (3 pages, 210630 bytes).
+PDF statistics:
+ 108 PDF objects out of 1000 (max. 8388607)
+ 11 named destinations out of 1000 (max. 500000)
+ 57 words of extra memory for PDF output out of 10000 (max. 10000000)
+

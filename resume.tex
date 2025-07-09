@@ -108,13 +108,6 @@
 \let\hrefWithoutArrow\href
 \renewcommand{\href}[2]{\hrefWithoutArrow{#1}{\ifthenelse{\equal{#2}{}}{ }{#2 }\raisebox{.15ex}{\footnotesize \faExternalLink*}}}
 
-% Custom link commands for project links
-\newcommand{\githublink}[1]{\href{#1}{\textcolor{black}{\faGithub}}}
-\newcommand{\demolink}[1]{\href{#1}{\textcolor{primaryColor}{\faPlay}}}
-\newcommand{\weblink}[1]{\href{#1}{\textcolor{primaryColor}{\faExternalLink}}}
-\newcommand{\portfoliolink}[1]{\href{#1}{\textcolor{primaryColor}{\faDesktop}}}
-\newcommand{\paperlink}[1]{\href{#1}{\textcolor{primaryColor}{\faFileAlt}}}
-
 \begin{document}
     \newcommand{\AND}{\unskip
         \cleaders\copy\ANDbox\hskip\wd\ANDbox
@@ -286,10 +279,6 @@
         \textit{Sep 2024 -- May 2025}
     }
         \textbf{Yamaha Music Generation, Music Synthesis AI}
-        \hspace{0.3cm}
-        \githublink{https://github.com/josephchay/yamaha-music-synthesis}
-        \hspace{0.2cm}
-        \demolink{https://yamaha-music-gen.vercel.app}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
@@ -305,10 +294,6 @@
         \textit{Jun 2024 -- Aug 2024}
     }
         \textbf{Ochi Design, Strategic Presentation Agency}
-        \hspace{0.3cm}
-        \weblink{https://ochi-design.vercel.app}
-        \hspace{0.2cm}
-        \githublink{https://github.com/josephchay/ochi-design}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
@@ -324,10 +309,6 @@
         \textit{Mar 2024 -- Jun 2024}
     }
         \textbf{Vixta Fashion Studio, Malaysian Fashion Designer Studio}
-        \hspace{0.3cm}
-        \weblink{https://vixta-fashion.netlify.app}
-        \hspace{0.2cm}
-        \githublink{https://github.com/josephchay/vixta-fashion}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
@@ -343,10 +324,6 @@
         \textit{Apr 2024 -- May 2024}
     }
         \textbf{Jessica Bauer Conte, YouTuber and Vlogger}
-        \hspace{0.3cm}
-        \weblink{https://jessicabauer.vercel.app}
-        \hspace{0.2cm}
-        \githublink{https://github.com/josephchay/jessica-bauer-portfolio}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
@@ -365,10 +342,6 @@
         \textit{Sep 2024 -- Dec 2024}
     }
         \textbf{Stable Adaptive Decompositional LDAS}
-        \hspace{0.3cm}
-        \githublink{https://github.com/josephchay/stable-ldas}
-        \hspace{0.2cm}
-        \paperlink{https://arxiv.org/abs/2024.ldas.stable}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
@@ -398,10 +371,6 @@
         \textit{Sep 2024 -- Dec 2024}
     }
         \textbf{Workflow Satisfiability Problem}
-        \hspace{0.3cm}
-        \githublink{https://github.com/josephchay/workflow-satisfiability}
-        \hspace{0.2cm}
-        \demolink{https://workflow-solver.herokuapp.com}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
@@ -417,10 +386,6 @@
         \textit{Oct 2024}
     }
         \textbf{Deepfake Guardian, On-Chain Content Detection Security}
-        \hspace{0.3cm}
-        \githublink{https://github.com/josephchay/deepfake-guardian}
-        \hspace{0.2cm}
-        \demolink{https://deepfake-guardian.vercel.app}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
@@ -436,10 +401,6 @@
         \textit{May 2024}
     }
         \textbf{Soccer Analyzer, Player Performance, Ball Tracking and Prediction}
-        \hspace{0.3cm}
-        \githublink{https://github.com/josephchay/soccer-analyzer}
-        \hspace{0.2cm}
-        \demolink{https://soccer-analyzer.streamlit.app}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
@@ -455,10 +416,6 @@
         \textit{Nov 2023 -- May 2024}
     }
         \textbf{Stable Diffusion with DDPM Sampler, Image Generation Pipeline}
-        \hspace{0.3cm}
-        \githublink{https://github.com/josephchay/stable-diffusion-ddpm}
-        \hspace{0.2cm}
-        \demolink{https://stable-diffusion-demo.gradio.app}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
@@ -474,10 +431,6 @@
         \textit{Sep 2023 -- May 2024}
     }
         \textbf{Smart Fridge, Fridge Surveillance and Meal Planner}
-        \hspace{0.3cm}
-        \githublink{https://github.com/josephchay/smart-fridge}
-        \hspace{0.2cm}
-        \demolink{https://smart-fridge.netlify.app}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
@@ -493,10 +446,6 @@
         \textit{Apr 2024 -- May 2024}
     }
         \textbf{Bin Packing Problem, Single Dimension, NP-Hard}
-        \hspace{0.3cm}
-        \githublink{https://github.com/josephchay/bin-packing-problem}
-        \hspace{0.2cm}
-        \demolink{https://bin-packing-solver.netlify.app}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
@@ -512,10 +461,6 @@
         \textit{Feb 2024 -- Apr 2024}
     }
         \textbf{Garbage Management System, Optimal Path Finder}
-        \hspace{0.3cm}
-        \githublink{https://github.com/josephchay/garbage-management-system}
-        \hspace{0.2cm}
-        \demolink{https://garbage-path-finder.vercel.app}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
@@ -531,10 +476,6 @@
         \textit{Jan 2024 -- Mar 2024}
     }
         \textbf{Inventory Management System, Blockchain Security Procedures}
-        \hspace{0.3cm}
-        \githublink{https://github.com/josephchay/blockchain-inventory}
-        \hspace{0.2cm}
-        \demolink{https://blockchain-inventory.netlify.app}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
@@ -550,10 +491,6 @@
         \textit{Feb 2024}
     }
         \textbf{Docket Notes, Interactive Note Taking and Diary Application}
-        \hspace{0.3cm}
-        \githublink{https://github.com/josephchay/docket-notes}
-        \hspace{0.2cm}
-        \weblink{https://docket-notes.vercel.app}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
@@ -569,10 +506,6 @@
         \textit{Feb 2024}
     }
         \textbf{JotIt, Interactive Note Taking and Diary Application}
-        \hspace{0.3cm}
-        \githublink{https://github.com/josephchay/jot-it}
-        \hspace{0.2cm}
-        \weblink{https://jot-it.netlify.app}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
@@ -588,10 +521,6 @@
         \textit{Dec 2023 -- Jan 2024}
     }
         \textbf{Bricksthetics, Interactive Aesthetic Brick-breaker}
-        \hspace{0.3cm}
-        \githublink{https://github.com/josephchay/bricksthetics}
-        \hspace{0.2cm}
-        \weblink{https://bricksthetics.netlify.app}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
