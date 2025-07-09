@@ -56,6 +56,7 @@
 \renewcommand{\footrulewidth}{0pt}
 % ---------------------------
 
+% Optimal spacing: ensures section titles stay with minimum content while allowing natural breaks
 \titleformat{\section}{\needspace{4\baselineskip}\bfseries\large}{}{0pt}{}[\vspace{1pt}\titlerule]
 \titlespacing{\section}{-1pt}{0.3cm}{0.2cm}
 
@@ -91,8 +92,28 @@
 }{
     \par\kern\topsep
 }
+
+% Environment for project entries - prevents splitting while allowing natural page breaks
+\newenvironment{projectentry}{
+    \needspace{2.5\baselineskip}
+}{
+}
+
+% Environment for first entry after section - minimal space since section already reserves space
+\newenvironment{firstprojectentry}{
+    \needspace{2\baselineskip}
+}{
+}
+
 \let\hrefWithoutArrow\href
 \renewcommand{\href}[2]{\hrefWithoutArrow{#1}{\ifthenelse{\equal{#2}{}}{ }{#2 }\raisebox{.15ex}{\footnotesize \faExternalLink*}}}
+
+% Custom link commands for project links
+\newcommand{\githublink}[1]{\href{#1}{\textcolor{black}{\faGithub}}}
+\newcommand{\demolink}[1]{\href{#1}{\textcolor{primaryColor}{\faPlay}}}
+\newcommand{\weblink}[1]{\href{#1}{\textcolor{primaryColor}{\faExternalLink}}}
+\newcommand{\portfoliolink}[1]{\href{#1}{\textcolor{primaryColor}{\faDesktop}}}
+\newcommand{\paperlink}[1]{\href{#1}{\textcolor{primaryColor}{\faFileAlt}}}
 
 \begin{document}
     \newcommand{\AND}{\unskip
@@ -123,11 +144,10 @@
         \kern 0.25cm%
     \end{header}
 
-    \vspace{0.3cm - 0.3cm}
-
     % EDUCATION
     \section{Education}
 
+    \begin{firstprojectentry}
     \begin{twocolentry}{
         \textit{Sep 2023 -- July 2025}
     }
@@ -139,12 +159,13 @@
     \begin{onecolentry}
         \begin{highlights}
             \item WAM: 77\% (First Class Honours with Distinction)
-            \item GPA: 3.82/4.00
+            \item GPA: 4.00/4.00 (Categorical) 3.82/4.00 (Proportional)
             \item Rank: 7th out of 84 students
         \end{highlights}
     \end{onecolentry}
+    \end{firstprojectentry}
 
-    \vspace{0.10cm}
+    \begin{projectentry}
     \begin{twocolentry}{
         \textit{Dec 2020 -- Mar 2023}
     }
@@ -159,8 +180,9 @@
             \item CGPA: 3.89/4.00 
         \end{highlights}
     \end{onecolentry}
+    \end{projectentry}
 
-    \vspace{0.10cm}
+    \begin{projectentry}
     \begin{twocolentry}{
         \textit{Sep 2016 -- May 2020}
     }
@@ -174,10 +196,12 @@
             \item Grades: 3A*, 5A, 2B
         \end{highlights}
     \end{onecolentry}
+    \end{projectentry}
 
     % INDUSTRIAL EXPERIENCE
     \section{Industrial Experience}
 
+    \begin{firstprojectentry}
     \begin{twocolentry}{
         \textit{Feb 2023 -- Aug 2023}
     }
@@ -194,7 +218,9 @@
             \item Payment gateway solutions with MasterCard and Visa
         \end{highlights}
     \end{onecolentry}
-    \vspace{0.10cm}
+    \end{firstprojectentry}
+
+    \begin{projectentry}
     \begin{twocolentry}{
         % \textit{Feb 2023 -- Aug 2023}
     }
@@ -213,8 +239,9 @@
             \item ResNet-based biometric verification system
         \end{highlights}
     \end{onecolentry}
+    \end{projectentry}
 
-    \vspace{0.10cm}
+    \begin{projectentry}
     \begin{twocolentry}{
         \textit{Dec 2022 -- Feb 2023}
     }
@@ -234,24 +261,35 @@
             \item Coordinated with stakeholders on project deliverables
         \end{highlights}
     \end{onecolentry}
+    \end{projectentry}
 
     % HONOURS & AWARDS
     \section{Honours \& Awards}
 
+    \begin{firstprojectentry}
     \begin{twocolentry}{\textit{Oct 2024}}
         \textbf{EthKL Devcon Hackathon, First Prize Winner}
     \end{twocolentry}
+    \end{firstprojectentry}
+    
+    \begin{projectentry}
     \begin{twocolentry}{\textit{Jul 2019}}
         \textbf{ABRSM Piano Grade 8, Passed with Distinction}
     \end{twocolentry}
+    \end{projectentry}
 
     % CLIENT PROJECTS
     \section{Client Projects}
 
+    \begin{firstprojectentry}
     \begin{twocolentry}{
         \textit{Sep 2024 -- May 2025}
     }
         \textbf{Yamaha Music Generation, Music Synthesis AI}
+        \hspace{0.3cm}
+        \githublink{https://github.com/josephchay/yamaha-music-synthesis}
+        \hspace{0.2cm}
+        \demolink{https://yamaha-music-gen.vercel.app}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
@@ -260,56 +298,77 @@
             \item Stack: PyTorch, Latent Diffusion, U-Nets, Fourier Transforms, Mel Spectrograms
         \end{highlights}
     \end{onecolentry}
+    \end{firstprojectentry}
 
-    \vspace{0.10cm}
+    \begin{projectentry}
     \begin{twocolentry}{
         \textit{Jun 2024 -- Aug 2024}
     }
         \textbf{Ochi Design, Strategic Presentation Agency}
+        \hspace{0.3cm}
+        \weblink{https://ochi-design.vercel.app}
+        \hspace{0.2cm}
+        \githublink{https://github.com/josephchay/ochi-design}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
+        \textit{Concept, Design. Portfolio, Micro Interactions, Database, Deployment}
         \begin{highlights}
-            \item Concept, Design. Portfolio, Micro Interactions, Database, Deployment
             \item Stack: NextJS, TailwindCSS, Framer Motion, GSAP, Locomotive Scroll
         \end{highlights}
     \end{onecolentry}
+    \end{projectentry}
 
-    \vspace{0.10cm}
+    \begin{projectentry}
     \begin{twocolentry}{
         \textit{Mar 2024 -- Jun 2024}
     }
         \textbf{Vixta Fashion Studio, Malaysian Fashion Designer Studio}
+        \hspace{0.3cm}
+        \weblink{https://vixta-fashion.netlify.app}
+        \hspace{0.2cm}
+        \githublink{https://github.com/josephchay/vixta-fashion}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
+        \textit{Concept, Design. Portfolio, Micro Interactions, Deployment}
         \begin{highlights}
-            \item Concept, Design. Portfolio, Micro Interactions, Deployment
             \item Stack: VueJS, TailwindCSS, Yarn, Framer Motion, GSAP
         \end{highlights}
     \end{onecolentry}
+    \end{projectentry}
 
-    \vspace{0.10cm}
+    \begin{projectentry}
     \begin{twocolentry}{
         \textit{Apr 2024 -- May 2024}
     }
         \textbf{Jessica Bauer Conte, YouTuber and Vlogger}
+        \hspace{0.3cm}
+        \weblink{https://jessicabauer.vercel.app}
+        \hspace{0.2cm}
+        \githublink{https://github.com/josephchay/jessica-bauer-portfolio}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
+        \textit{Concept, Design, Portfolio, Micro Interactions, Deployment}
         \begin{highlights}
-            \item Concept, Design, Portfolio, Micro Interactions, Deployment
             \item Stack: VueJS, TailwindCSS, Yarn, Framer Motion, GSAP
         \end{highlights}
     \end{onecolentry}
+    \end{projectentry}
 
     % PERSONAL PROJECTS
     \section{Personal Projects}
 
+    \begin{firstprojectentry}
     \begin{twocolentry}{
         \textit{Sep 2024 -- Dec 2024}
     }
         \textbf{Stable Adaptive Decompositional LDAS}
+        \hspace{0.3cm}
+        \githublink{https://github.com/josephchay/stable-ldas}
+        \hspace{0.2cm}
+        \paperlink{https://arxiv.org/abs/2024.ldas.stable}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
@@ -332,12 +391,17 @@
             \end{itemize}
         \end{highlights}
     \end{onecolentry}
+    \end{firstprojectentry}
 
-    \vspace{0.10cm}
+    \begin{projectentry}
     \begin{twocolentry}{
         \textit{Sep 2024 -- Dec 2024}
     }
         \textbf{Workflow Satisfiability Problem}
+        \hspace{0.3cm}
+        \githublink{https://github.com/josephchay/workflow-satisfiability}
+        \hspace{0.2cm}
+        \demolink{https://workflow-solver.herokuapp.com}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
@@ -346,12 +410,17 @@
             \item Stack: Python, Genetic Evolutionary, Metaheuristic, Pigeonhole Principle, Bayesian Network
         \end{highlights}
     \end{onecolentry}
+    \end{projectentry}
 
-    \vspace{0.10cm}
+    \begin{projectentry}
     \begin{twocolentry}{
         \textit{Oct 2024}
     }
         \textbf{Deepfake Guardian, On-Chain Content Detection Security}
+        \hspace{0.3cm}
+        \githublink{https://github.com/josephchay/deepfake-guardian}
+        \hspace{0.2cm}
+        \demolink{https://deepfake-guardian.vercel.app}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
@@ -360,12 +429,17 @@
             \item Stack: Solidity, Sepolia, Testnet, PyTorch, Rust, Shell, NextJS
         \end{highlights}
     \end{onecolentry}
+    \end{projectentry}
 
-    \vspace{0.10cm}
+    \begin{projectentry}
     \begin{twocolentry}{
         \textit{May 2024}
     }
         \textbf{Soccer Analyzer, Player Performance, Ball Tracking and Prediction}
+        \hspace{0.3cm}
+        \githublink{https://github.com/josephchay/soccer-analyzer}
+        \hspace{0.2cm}
+        \demolink{https://soccer-analyzer.streamlit.app}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
@@ -374,12 +448,17 @@
             \item Stack: PyTorch, YOLOv5, OpenCV
         \end{highlights}
     \end{onecolentry}
+    \end{projectentry}
 
-    \vspace{0.10cm}
+    \begin{projectentry}
     \begin{twocolentry}{
         \textit{Nov 2023 -- May 2024}
     }
         \textbf{Stable Diffusion with DDPM Sampler, Image Generation Pipeline}
+        \hspace{0.3cm}
+        \githublink{https://github.com/josephchay/stable-diffusion-ddpm}
+        \hspace{0.2cm}
+        \demolink{https://stable-diffusion-demo.gradio.app}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
@@ -388,12 +467,17 @@
             \item Stack: PyTorch, DDPM, VAE, CLIP, Cross Attention, Diffusion
         \end{highlights}
     \end{onecolentry}
+    \end{projectentry}
 
-    \vspace{0.10cm}
+    \begin{projectentry}
     \begin{twocolentry}{
         \textit{Sep 2023 -- May 2024}
     }
         \textbf{Smart Fridge, Fridge Surveillance and Meal Planner}
+        \hspace{0.3cm}
+        \githublink{https://github.com/josephchay/smart-fridge}
+        \hspace{0.2cm}
+        \demolink{https://smart-fridge.netlify.app}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
@@ -402,12 +486,17 @@
             \item Stack: Pytorch, TensorFlow, Flutter, Dart, Swift, Kotlin, InnoDB
         \end{highlights}
     \end{onecolentry}
+    \end{projectentry}
 
-    \vspace{0.10cm}
+    \begin{projectentry}
     \begin{twocolentry}{
         \textit{Apr 2024 -- May 2024}
     }
         \textbf{Bin Packing Problem, Single Dimension, NP-Hard}
+        \hspace{0.3cm}
+        \githublink{https://github.com/josephchay/bin-packing-problem}
+        \hspace{0.2cm}
+        \demolink{https://bin-packing-solver.netlify.app}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
@@ -416,12 +505,17 @@
             \item Stack: Java, Heuristics, Meta-heuristics, Search Strategies
         \end{highlights}
     \end{onecolentry}
+    \end{projectentry}
 
-    \vspace{0.10cm}
+    \begin{projectentry}
     \begin{twocolentry}{
         \textit{Feb 2024 -- Apr 2024}
     }
         \textbf{Garbage Management System, Optimal Path Finder}
+        \hspace{0.3cm}
+        \githublink{https://github.com/josephchay/garbage-management-system}
+        \hspace{0.2cm}
+        \demolink{https://garbage-path-finder.vercel.app}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
@@ -430,12 +524,17 @@
             \item Stack: C, C++, Cmake, Route Finding Algorithms, Database
         \end{highlights}
     \end{onecolentry}
+    \end{projectentry}
 
-    \vspace{0.10cm}
+    \begin{projectentry}
     \begin{twocolentry}{
         \textit{Jan 2024 -- Mar 2024}
     }
         \textbf{Inventory Management System, Blockchain Security Procedures}
+        \hspace{0.3cm}
+        \githublink{https://github.com/josephchay/blockchain-inventory}
+        \hspace{0.2cm}
+        \demolink{https://blockchain-inventory.netlify.app}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
@@ -444,12 +543,17 @@
             \item Stack: C, C++, Cmake, Block Header, Merkle Root, Nonce Setting, Block Mining, Hashing
         \end{highlights}
     \end{onecolentry}
+    \end{projectentry}
 
-    \vspace{0.10cm}
+    \begin{projectentry}
     \begin{twocolentry}{
         \textit{Feb 2024}
     }
         \textbf{Docket Notes, Interactive Note Taking and Diary Application}
+        \hspace{0.3cm}
+        \githublink{https://github.com/josephchay/docket-notes}
+        \hspace{0.2cm}
+        \weblink{https://docket-notes.vercel.app}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
@@ -458,12 +562,17 @@
             \item Stack: ReactJS, JavaScript, TailwindCSS, xState, Framer Motion, AnimeJS, GSAP
         \end{highlights}
     \end{onecolentry}
+    \end{projectentry}
 
-    \vspace{0.10cm}
+    \begin{projectentry}
     \begin{twocolentry}{
         \textit{Feb 2024}
     }
         \textbf{JotIt, Interactive Note Taking and Diary Application}
+        \hspace{0.3cm}
+        \githublink{https://github.com/josephchay/jot-it}
+        \hspace{0.2cm}
+        \weblink{https://jot-it.netlify.app}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
@@ -472,12 +581,17 @@
             \item Stack: ReactJS, Vite, JavaScript, TailwindCSS, Framer Motion, GSAP
         \end{highlights}
     \end{onecolentry}
+    \end{projectentry}
 
-    \vspace{0.10cm}
+    \begin{projectentry}
     \begin{twocolentry}{
         \textit{Dec 2023 -- Jan 2024}
     }
         \textbf{Bricksthetics, Interactive Aesthetic Brick-breaker}
+        \hspace{0.3cm}
+        \githublink{https://github.com/josephchay/bricksthetics}
+        \hspace{0.2cm}
+        \weblink{https://bricksthetics.netlify.app}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
@@ -486,10 +600,12 @@
             \item Stack: Java, HTML, Maven, SFX, Particle Systems
         \end{highlights}
     \end{onecolentry}
+    \end{projectentry}
 
     % PROFICIENCY AND TOOLS
     \section{Proficiency and Tools}
 
+    \begin{firstprojectentry}
     \begin{twocolentry}{
         \textit{}
     }
@@ -504,8 +620,9 @@
             \item Matplotlib, Matlab, Latex
         \end{highlights}
     \end{onecolentry}
+    \end{firstprojectentry}
 
-    \vspace{0.10cm}
+    \begin{projectentry}
     \begin{twocolentry}{
         \textit{}
     }
@@ -520,8 +637,9 @@
             \item Animations (GSAP, Framer Motion, LocomotiveScroll, ScrollTrigger)
         \end{highlights}
     \end{onecolentry}
+    \end{projectentry}
 
-    \vspace{0.10cm}
+    \begin{projectentry}
     \begin{twocolentry}{
         \textit{}
     }
@@ -535,14 +653,16 @@
             \item IDEs (VsCode, Intellij, IDLE)
         \end{highlights}
     \end{onecolentry}
+    \end{projectentry}
 
     % LANGUAGES
-    \section{Languages -- Spoken and Written}
+    \section{Languages}
 
+    \begin{firstprojectentry}
     \begin{twocolentry}{
         \textit{}
     }
-        \textbf{Languages}
+        \textbf{Spoken and Written}
     \end{twocolentry}
     \vspace{0.10cm}
     \begin{onecolentry}
@@ -553,5 +673,6 @@
             \item Malay (Proficient)
         \end{highlights}
     \end{onecolentry}
+    \end{firstprojectentry}
 
 \end{document}
