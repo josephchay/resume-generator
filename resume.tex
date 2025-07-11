@@ -22,7 +22,9 @@
     pdfauthor={Joseph Emmanuel Chay Huan Qin},
     pdfcreator={LaTeX with RenderCV},
     colorlinks=true,
-    urlcolor=primaryColor
+    urlcolor=primaryColor,
+    linkcolor=black,
+    breaklinks=true
 ]{hyperref}
 \usepackage{fancyhdr}
 \usepackage{calc}
@@ -152,8 +154,8 @@
     \begin{onecolentry}
         \begin{highlights}
             \item WAM: 77\% (First Class Honours with Distinction)
-            \item GPA: 4.00/4.00 (Categorical) 3.82/4.00 (Proportional)
-            \item Rank: 7th out of 84 students
+            \item GPA: 4.00/4.00 (Categorical) · 3.82/4.00 (Proportional)
+            \item Rank: 3/84 (CSAI) · 3/115 (CSAI and CS) · 3/119 (CSAI and CS and SE)
         \end{highlights}
     \end{onecolentry}
     \end{firstprojectentry}
@@ -170,7 +172,7 @@
     \begin{onecolentry}
         \begin{highlights}
             \item GPA: 3.93/4.00
-            \item CGPA: 3.89/4.00 
+            \item CGPA: 3.89/4.00
         \end{highlights}
     \end{onecolentry}
     \end{projectentry}
@@ -260,16 +262,35 @@
     \section{Honours \& Awards}
 
     \begin{firstprojectentry}
-    \begin{twocolentry}{\textit{Oct 2024}}
-        \textbf{EthKL Devcon Hackathon, First Prize Winner}
-    \end{twocolentry}
+        \begin{twocolentry}{\textit{Oct 2024}}
+            \textbf{EthKL Devcon Hackathon, First Prize Winner}
+        \end{twocolentry}
+    \end{firstprojectentry}
+    
+    \begin{firstprojectentry}
+        % \begin{twocolentry}{\textit{26\textsuperscript{th} Apr 2024}}
+        \begin{twocolentry}{\textit{Apr 2024}}
+            \textbf{Smart Fridge, Top 5 Best Industry Project}\footnote{Announced during event closing ceremony}
+        \end{twocolentry}
     \end{firstprojectentry}
     
     \begin{projectentry}
-    \begin{twocolentry}{\textit{Jul 2019}}
-        \textbf{ABRSM Piano Grade 8, Passed with Distinction}
-    \end{twocolentry}
+        \begin{twocolentry}{\textit{Jul 2019}}
+            \textbf{ABRSM Piano Grade 8, Passed with Distinction}
+        \end{twocolentry}
     \end{projectentry}
+
+    \begin{projectentry}
+        \begin{twocolentry}{\textit{Dec 2019}}
+            \textbf{Deputy Head Prefect, Regent International School}
+        \end{twocolentry}
+    \end{projectentry}
+
+    % \begin{projectentry}
+    %     \begin{twocolentry}{\textit{Dec 2018}}
+    %         \textbf{Head Prefect, Regent International School}
+    %     \end{twocolentry}
+    % \end{projectentry}
 
     % CLIENT PROJECTS
     \section{Client Projects}
@@ -285,24 +306,28 @@
         \textit{Machine Learning, Generative Modelling, Diffusion Frameworks, Text-to-Music, Lyric-to-Song}
         \begin{highlights}
             \item Stack: PyTorch, Latent Diffusion, U-Nets, Fourier Transforms, Mel Spectrograms
+            \item Code: \url{https://github.com/Soundsation/pipeline/}
+            \item Demo: \url{https://josephchay.github.io/soundsation.github.io/}
         \end{highlights}
     \end{onecolentry}
     \end{firstprojectentry}
 
-    \begin{projectentry}
-    \begin{twocolentry}{
-        \textit{Jun 2024 -- Aug 2024}
-    }
-        \textbf{Ochi Design, Strategic Presentation Agency}
-    \end{twocolentry}
-    \vspace{0.10cm}
-    \begin{onecolentry}
-        \textit{Concept, Design. Portfolio, Micro Interactions, Database, Deployment}
-        \begin{highlights}
-            \item Stack: NextJS, TailwindCSS, Framer Motion, GSAP, Locomotive Scroll
-        \end{highlights}
-    \end{onecolentry}
-    \end{projectentry}
+    % \begin{projectentry}
+    % \begin{twocolentry}{
+    %     \textit{Jun 2024 -- Aug 2024}
+    % }
+    %     \textbf{Ochi Design, Strategic Presentation Agency}
+    % \end{twocolentry}
+    % \vspace{0.10cm}
+    % \begin{onecolentry}
+    %     \textit{Concept, Design. Portfolio, Micro Interactions, Database, Deployment}
+    %     \begin{highlights}
+    %         \item Stack: NextJS, TailwindCSS, Framer Motion, GSAP, Locomotive Scroll
+    %         \item Website: \url{https://ochi-design.vercel.app}
+    %         \item Code: \url{https://github.com/josephchay/ochi-design}
+    %     \end{highlights}
+    % \end{onecolentry}
+    % \end{projectentry}
 
     \begin{projectentry}
     \begin{twocolentry}{
@@ -315,6 +340,8 @@
         \textit{Concept, Design. Portfolio, Micro Interactions, Deployment}
         \begin{highlights}
             \item Stack: VueJS, TailwindCSS, Yarn, Framer Motion, GSAP
+            \item Website: \url{https://vixta.netlify.app/}
+            \item Code: \url{https://github.com/josephchay/vixta-fashion-studio}
         \end{highlights}
     \end{onecolentry}
     \end{projectentry}
@@ -330,6 +357,8 @@
         \textit{Concept, Design, Portfolio, Micro Interactions, Deployment}
         \begin{highlights}
             \item Stack: VueJS, TailwindCSS, Yarn, Framer Motion, GSAP
+            \item Website: \url{https://jess-conte.netlify.app/}
+            \item Code: \url{https://github.com/josephchay/jessica-conte-folio}
         \end{highlights}
     \end{onecolentry}
     \end{projectentry}
@@ -348,6 +377,8 @@
         \textit{Reinforcement Learning, Exploration \& Exploitation Strategies, MuJoCo, OpenAI Gymnasium}
         \begin{highlights}
             \item Stack: PyTorch, Anaconda, LDAS, Action Selection (Spectral-Approach), Denoising, SME Loss
+            \item Code: \url{https://github.com/josephchay/SADLDAS}
+            \item Paper: \url{https://github.com/josephchay/SADLDAS/blob/main/ARS-2425-Task2-20580363.pdf}
             \item Environments solved within leaderboard defined thresholds:
             \begin{itemize}[leftmargin=1.2em,topsep=0pt,itemsep=0pt,parsep=0pt]
                 \item Mountain Car Continuous (Version 0)
@@ -377,24 +408,27 @@
         \textit{Constraint Satisfaction, Tooling solvers, Encoding Patterns, Mathematical Formulations}
         \begin{highlights}
             \item Stack: Python, Genetic Evolutionary, Metaheuristic, Pigeonhole Principle, Bayesian Network
+            \item Code: \url{https://github.com/josephchay/workflow-satisfiability-problem}
         \end{highlights}
     \end{onecolentry}
     \end{projectentry}
 
-    \begin{projectentry}
-    \begin{twocolentry}{
-        \textit{Oct 2024}
-    }
-        \textbf{Deepfake Guardian, On-Chain Content Detection Security}
-    \end{twocolentry}
-    \vspace{0.10cm}
-    \begin{onecolentry}
-        \textit{Deepfake Detection, Smart Contracts, On-Chain Security, ICP Canister, Computer Vision}
-        \begin{highlights}
-            \item Stack: Solidity, Sepolia, Testnet, PyTorch, Rust, Shell, NextJS
-        \end{highlights}
-    \end{onecolentry}
-    \end{projectentry}
+    % \begin{projectentry}
+    % \begin{twocolentry}{
+    %     \textit{Oct 2024}
+    % }
+    %     \textbf{Deepfake Guardian, On-Chain Content Detection Security}
+    % \end{twocolentry}
+    % \vspace{0.10cm}
+    % \begin{onecolentry}
+    %     \textit{Deepfake Detection, Smart Contracts, On-Chain Security, ICP Canister, Computer Vision}
+    %     \begin{highlights}
+    %         \item Stack: Solidity, Sepolia, Testnet, PyTorch, Rust, Shell, NextJS
+    %         \item Code: \url{https://github.com/josephchay/deepfake-guardian}
+    %         \item Demo: \url{https://deepfake-guardian.vercel.app}
+    %     \end{highlights}
+    % \end{onecolentry}
+    % \end{projectentry}
 
     \begin{projectentry}
     \begin{twocolentry}{
@@ -407,6 +441,7 @@
         \textit{Computer Vision, Object Detection, Occlusion, Position and Speed Tracking, Clustering}
         \begin{highlights}
             \item Stack: PyTorch, YOLOv5, OpenCV
+            \item Code: \url{https://github.com/josephchay/soccer-analysis-yolov5}
         \end{highlights}
     \end{onecolentry}
     \end{projectentry}
@@ -422,6 +457,7 @@
         \textit{Pipeline, Unconditional Generation, Text-to-Image, Image-to-Image}
         \begin{highlights}
             \item Stack: PyTorch, DDPM, VAE, CLIP, Cross Attention, Diffusion
+            \item Code: \url{https://github.com/josephchay/stable-diffusion-pytorch}
         \end{highlights}
     \end{onecolentry}
     \end{projectentry}
@@ -437,6 +473,8 @@
         \textit{Machine Learning, App Development, Computer Vision, Object Detection}
         \begin{highlights}
             \item Stack: Pytorch, TensorFlow, Flutter, Dart, Swift, Kotlin, InnoDB
+            \item Training \& Inference Code: \url{https://github.com/josephchay/smart-fridge-model-training}
+            \item Demo Code: \url{https://github.com/josephchay/smart-fridge}
         \end{highlights}
     \end{onecolentry}
     \end{projectentry}
@@ -452,6 +490,7 @@
         \textit{First-Fit Decreasing, Tabu Search, Genetic Meta-heuristic, Simulated Annealing}
         \begin{highlights}
             \item Stack: Java, Heuristics, Meta-heuristics, Search Strategies
+            \item Code: \url{https://github.com/josephchay/1d-bin-packing-java-4-algos}
         \end{highlights}
     \end{onecolentry}
     \end{projectentry}
@@ -467,6 +506,7 @@
         \textit{Greedy Algorithm, Optimized Algorithms, Travelling Salesman Problem Algorithm}
         \begin{highlights}
             \item Stack: C, C++, Cmake, Route Finding Algorithms, Database
+            \item Code: \url{https://github.com/josephchay/garbage-optimal-path-finder-cpp}
         \end{highlights}
     \end{onecolentry}
     \end{projectentry}
@@ -482,6 +522,7 @@
         \textit{Blockchain, Supply Chain Management, Block Mining, User Role Management}
         \begin{highlights}
             \item Stack: C, C++, Cmake, Block Header, Merkle Root, Nonce Setting, Block Mining, Hashing
+            \item Code: \url{https://github.com/josephchay/inventory-transportation-management-system}
         \end{highlights}
     \end{onecolentry}
     \end{projectentry}
@@ -497,6 +538,8 @@
         \textit{Design, Development, Database, Deployment}
         \begin{highlights}
             \item Stack: ReactJS, JavaScript, TailwindCSS, xState, Framer Motion, AnimeJS, GSAP
+            \item Code: \url{https://github.com/josephchay/docket-notes}
+            \item Website: \url{https://docketnotes.netlify.app/}
         \end{highlights}
     \end{onecolentry}
     \end{projectentry}
@@ -512,6 +555,8 @@
         \textit{Design, Development, Database, Deployment}
         \begin{highlights}
             \item Stack: ReactJS, Vite, JavaScript, TailwindCSS, Framer Motion, GSAP
+            \item Code: \url{https://github.com/josephchay/jotit}
+            \item Website: \url{https://jotitnow.netlify.app/}
         \end{highlights}
     \end{onecolentry}
     \end{projectentry}
@@ -527,6 +572,7 @@
         \textit{Game Development, Applied Mathematics, Micro Interactions}
         \begin{highlights}
             \item Stack: Java, HTML, Maven, SFX, Particle Systems
+            \item Code: \url{https://github.com/josephchay/bricksthetics}
         \end{highlights}
     \end{onecolentry}
     \end{projectentry}
