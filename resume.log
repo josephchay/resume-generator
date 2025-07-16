@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.3) (preloaded format=pdflatex 2025.4.27)  16 JUL 2025 03:41
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.3) (preloaded format=pdflatex 2025.4.27)  16 JUL 2025 14:47
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -599,39 +599,39 @@ vailable
 (Font)              Font shape `U/fontawesomebrands0/regular/n' tried instead o
 n input line 138.
 LaTeX Font Info:    Trying to load font information for OML+lmm on input line 1
-74.
+75.
 
 (C:\Users\joseph\AppData\Local\Programs\MiKTeX\tex/latex/lm\omllmm.fd
 File: omllmm.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for OMS+lmsy on input line 
-174.
+175.
 
 (C:\Users\joseph\AppData\Local\Programs\MiKTeX\tex/latex/lm\omslmsy.fd
 File: omslmsy.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for OMX+lmex on input line 
-174.
+175.
 
 (C:\Users\joseph\AppData\Local\Programs\MiKTeX\tex/latex/lm\omxlmex.fd
 File: omxlmex.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 174.
+(Font)              <10> on input line 175.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 174.
+(Font)              <7> on input line 175.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 174.
+(Font)              <5> on input line 175.
 LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 1
-75.
+76.
 
 (C:\Users\joseph\AppData\Local\Programs\MiKTeX\tex/latex/lm\ts1lmr.fd
 File: ts1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <8> on input line 178.
+(Font)              <8> on input line 179.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <6> on input line 178.
+(Font)              <6> on input line 179.
 
 
 [1
@@ -660,7 +660,7 @@ L3 programming layer <2025-01-18>
 Here is how much of TeX's memory you used:
  15565 strings out of 473522
  268919 string characters out of 5714125
- 688217 words of memory out of 5000000
+ 689217 words of memory out of 5000000
  38572 multiletter control sequences out of 15000+600000
  595587 words of font info for 61 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -679,7 +679,7 @@ lmr8.pfb><C:/Users/joseph/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/l
 mri10.pfb><C:/Users/joseph/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/
 lmri9.pfb><C:/Users/joseph/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/
 lmsy10.pfb>
-Output written on resume.pdf (4 pages, 267739 bytes).
+Output written on resume.pdf (4 pages, 267885 bytes).
 PDF statistics:
  168 PDF objects out of 1000 (max. 8388607)
  17 named destinations out of 1000 (max. 500000)
