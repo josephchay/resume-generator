@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.3) (preloaded format=pdflatex 2025.4.27)  1 SEP 2025 14:52
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.3) (preloaded format=pdflatex 2025.4.27)  8 SEP 2025 15:25
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -629,9 +629,9 @@ LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 2
 File: ts1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <8> on input line 209.
+(Font)              <8> on input line 210.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <6> on input line 209.
+(Font)              <6> on input line 210.
 
 
 [1
@@ -683,7 +683,7 @@ mri10.pfb><C:/Users/joseph/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/
 lmri8.pfb><C:/Users/joseph/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/
 lmri9.pfb><C:/Users/joseph/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/
 lmsy10.pfb>
-Output written on resume.pdf (5 pages, 309996 bytes).
+Output written on resume.pdf (5 pages, 309974 bytes).
 PDF statistics:
  187 PDF objects out of 1000 (max. 8388607)
  18 named destinations out of 1000 (max. 500000)
