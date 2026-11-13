@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.4) (preloaded format=pdflatex 2026.6.30)  14 NOV 2026 00:59
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.4) (preloaded format=pdflatex 2026.6.30)  14 NOV 2026 01:02
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -617,7 +617,7 @@ L3 programming layer <2025-10-09>
 Here is how much of TeX's memory you used:
  15485 strings out of 468080
  266832 string characters out of 5426256
- 700600 words of memory out of 5000000
+ 701600 words of memory out of 5000000
  43955 multiletter control sequences out of 15000+600000
  664078 words of font info for 60 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -633,7 +633,7 @@ b><C:/Users/User/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmr10.pfb>
 C:/Users/User/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmri7.pfb><C:
 /Users/User/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmri9.pfb><C:/U
 sers/User/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy10.pfb>
-Output written on resume.pdf (2 pages, 192176 bytes).
+Output written on resume.pdf (2 pages, 192241 bytes).
 PDF statistics:
  113 PDF objects out of 1000 (max. 8388607)
  10 named destinations out of 1000 (max. 500000)
