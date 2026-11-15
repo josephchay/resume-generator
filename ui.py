@@ -3,11 +3,21 @@ import re
 import sys
 import json
 import copy
+import glob
+import shutil
 import ctypes
 import subprocess
 import threading
+import tempfile
 import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
+from tkinter import ttk, messagebox, filedialog, colorchooser
+
+# Optional PyMuPDF for instant in-app PDF page rendering
+try:
+    import fitz  # PyMuPDF
+    HAS_PYMUPDF = True
+except ImportError:
+    HAS_PYMUPDF = False
 
 # Enable crisp High-DPI font scaling on Windows
 if sys.platform.startswith("win"):
@@ -16,18 +26,16 @@ if sys.platform.startswith("win"):
     except Exception:
         pass
 
-DATA_FILE = "joseph_resume_data.json"
+DATA_FILE = "joseph_resume_v2.json"
 TEX_FILE = "resume.tex"
+PDF_FILE = "resume.pdf"
 LOG_FILE = "resume.log"
 
-# ==============================================================================
-# Theme Colors (Matched to your primaryColor RGB{0, 79, 144})
-# ==============================================================================
 COLORS = {
     "bg_main": "#f1f5f9",
     "bg_card": "#ffffff",
-    "bg_header": "#003566",     # Deep Navy
-    "primary": "#004f90",       # Your exact RGB(0, 79, 144)
+    "bg_header": "#003566",
+    "primary": "#004f90",       # Matches your \definecolor{primaryColor}{RGB}{0, 79, 144}
     "primary_hover": "#003b6d",
     "emerald": "#059669",
     "emerald_hover": "#047857",
@@ -41,131 +49,151 @@ COLORS = {
     "hl_line": "#313244",
 }
 
-# ==============================================================================
-# Exact Preamble & Header Macros from Your resume.tex
-# ==============================================================================
-EXACT_PREAMBLE = r"""\documentclass[10pt, letterpaper]{article}
+DEFAULT_LAYOUT = {
+    "margin_cm": "2.0",
+    "footskip_cm": "1.0",
+    "right_col_cm": "5.2",
+    "sec_before_cm": "0.3",
+    "sec_after_cm": "0.2",
+    "bullet_glyph": r"\circ",
+    "primary_rgb": "0, 79, 144",
+    "footer_page_of_last": False,
+}
+
+
+def build_exact_preamble(layout: dict, footer_name: str) -> str:
+    m = layout.get("margin_cm", "2.0")
+    fs = layout.get("footskip_cm", "1.0")
+    rcol = layout.get("right_col_cm", "5.2")
+    sb = layout.get("sec_before_cm", "0.3")
+    sa = layout.get("sec_after_cm", "0.2")
+    glyph = layout.get("bullet_glyph", r"\circ")
+    rgb = layout.get("primary_rgb", "0, 79, 144")
+    page_fmt = (
+        r"\fancyfoot[R]{\color{gray}\textit{\small Page \thepage\ of \pageref*{LastPage}}}"
+        if layout.get("footer_page_of_last", False)
+        else r"\fancyfoot[R]{\color{gray}\textit{\small \thepage}}"
+    )
+    esc_footer = smart_escape_latex(footer_name)
+
+    return rf"""\documentclass[10pt, letterpaper]{{article}}
 
 % Packages:
 \usepackage[
     ignoreheadfoot,
-    top=2cm,
-    bottom=2cm,
-    left=2cm,
-    right=2cm,
-    footskip=1.0cm,
-]{geometry}
-\usepackage{titlesec}
-\usepackage{tabularx}
-\usepackage{array}
-\usepackage[dvipsnames]{xcolor}
-\definecolor{primaryColor}{RGB}{0, 79, 144}
-\usepackage{enumitem}
-\usepackage{fontawesome5}
-\usepackage{amsmath}
+    top={m}cm,
+    bottom={m}cm,
+    left={m}cm,
+    right={m}cm,
+    footskip={fs}cm,
+]{{geometry}}
+\usepackage{{titlesec}}
+\usepackage{{tabularx}}
+\usepackage{{array}}
+\usepackage[dvipsnames]{{xcolor}}
+\definecolor{{primaryColor}}{{RGB}}{{{rgb}}}
+\usepackage{{enumitem}}
+\usepackage{{fontawesome5}}
+\usepackage{{amsmath}}
 \usepackage[
-    pdftitle={Joseph Emmanuel Chay Huan Qin's CV},
-    pdfauthor={Joseph Emmanuel Chay Huan Qin},
-    pdfcreator={LaTeX with RenderCV},
+    pdftitle={{{esc_footer}'s CV}},
+    pdfauthor={{{esc_footer}}},
+    pdfcreator={{LaTeX with RenderCV}},
     colorlinks=true,
     urlcolor=primaryColor,
     linkcolor=black,
     breaklinks=true
-]{hyperref}
-\usepackage{fancyhdr}
-\usepackage{calc}
-\usepackage{bookmark}
-\usepackage{lastpage}
-\usepackage{changepage}
-\usepackage{paracol}
-\usepackage{ifthen}
-\usepackage{needspace}
-\usepackage{iftex}
-\usepackage{paracol}
-\footnotelayout{m}
+]{{hyperref}}
+\usepackage{{fancyhdr}}
+\usepackage{{calc}}
+\usepackage{{bookmark}}
+\usepackage{{lastpage}}
+\usepackage{{changepage}}
+\usepackage{{paracol}}
+\usepackage{{ifthen}}
+\usepackage{{needspace}}
+\usepackage{{iftex}}
+\usepackage{{paracol}}
+\footnotelayout{{m}}
 
 \ifPDFTeX
-    \input{glyphtounicode}
+    \input{{glyphtounicode}}
     \pdfgentounicode=1
-    \usepackage[utf8]{inputenc}
-    \usepackage{lmodern}
+    \usepackage[utf8]{{inputenc}}
+    \usepackage{{lmodern}}
 \fi
 
-\AtBeginEnvironment{adjustwidth}{\partopsep0pt}
-\setcounter{secnumdepth}{0}
-\setlength{\parindent}{0pt}
-\setlength{\topskip}{0pt}
-\setlength{\columnsep}{0cm}
+\AtBeginEnvironment{{adjustwidth}}{{\partopsep0pt}}
+\setcounter{{secnumdepth}}{{0}}
+\setlength{{\parindent}}{{0pt}}
+\setlength{{\topskip}}{{0pt}}
+\setlength{{\columnsep}}{{0cm}}
 
 % --- Footer Redefinition ---
-\pagestyle{fancy}
-\fancyhf{}
-\fancyfoot[C]{\color{gray}\textit{\small Joseph Emmanuel Chay Huan Qin}}
-% \fancyfoot[R]{\color{gray}\textit{\small Page \thepage\ of \pageref*{LastPage}}}
-\fancyfoot[R]{\color{gray}\textit{\small \thepage}}
-\renewcommand{\headrulewidth}{0pt}
-\renewcommand{\footrulewidth}{0pt}
+\pagestyle{{fancy}}
+\fancyhf{{}}
+\fancyfoot[C]{{\color{{gray}}\textit{{\small {esc_footer}}}}}
+{page_fmt}
+\renewcommand{{\headrulewidth}}{{0pt}}
+\renewcommand{{\footrulewidth}}{{0pt}}
 % ---------------------------
 
 % Optimal spacing: ensures section titles stay with minimum content while allowing natural breaks
-\titleformat{\section}{\needspace{4\baselineskip}\bfseries\large}{}{0pt}{}[\vspace{1pt}\titlerule]
-\titlespacing{\section}{-1pt}{0.3cm}{0.2cm}
+\titleformat{{\section}}{{\needspace{{4\baselineskip}}\bfseries\large}}{{}}{{0pt}}{{}}[\vspace{{1pt}}\titlerule]
+\titlespacing{{\section}}{{-1pt}}{{{sb}cm}}{{{sa}cm}}
 
-\renewcommand\labelitemi{$\circ$}
-\newenvironment{highlights}{
-    \begin{itemize}[
+\renewcommand\labelitemi{{${glyph}$}}
+\newenvironment{{highlights}}{{
+    \begin{{itemize}}[
         topsep=0.10cm,
         parsep=0.10cm,
         partopsep=0pt,
         itemsep=0pt,
         leftmargin=0.4cm + 10pt
     ]
-}{
-    \end{itemize}
-}
-\newenvironment{onecolentry}{
-    \begin{adjustwidth}{0.2cm + 0.00001cm}{0.2cm + 0.00001cm}
-}{
-    \end{adjustwidth}
-}
-\newenvironment{twocolentry}[2][]{
+}}{{
+    \end{{itemize}}
+}}
+\newenvironment{{onecolentry}}{{
+    \begin{{adjustwidth}}{{0.2cm + 0.00001cm}}{{0.2cm + 0.00001cm}}
+}}{{
+    \end{{adjustwidth}}
+}}
+\newenvironment{{twocolentry}}[2][]{{
     \onecolentry
-    \def\secondColumn{#2}
-    \setcolumnwidth{\fill, 5.2cm}
-    \begin{paracol}{2}
-}{
+    \def\secondColumn{{#2}}
+    \setcolumnwidth{{\fill, {rcol}cm}}
+    \begin{{paracol}}{{2}}
+}}{{
     \switchcolumn \raggedleft \secondColumn
-    \end{paracol}
+    \end{{paracol}}
     \endonecolentry
-}
-\newenvironment{header}{
-    \setlength{\topsep}{0pt}\par\kern\topsep\centering\linespread{1.5}
-}{
+}}
+\newenvironment{{header}}{{
+    \setlength{{\topsep}}{{0pt}}\par\kern\topsep\centering\linespread{{1.5}}
+}}{{
     \par\kern\topsep
-}
+}}
 
 % Environment for project entries - prevents splitting while allowing natural page breaks
-\newenvironment{projectentry}{
-    \needspace{2.5\baselineskip}
-}{
-}
+\newenvironment{{projectentry}}{{
+    \needspace{{2.5\baselineskip}}
+}}{{
+}}
 
 % Environment for first entry after section - minimal space since section already reserves space
-\newenvironment{firstprojectentry}{
-    \needspace{2\baselineskip}
-}{
-}
+\newenvironment{{firstprojectentry}}{{
+    \needspace{{2\baselineskip}}
+}}{{
+}}
 
 \let\hrefWithoutArrow\href
-\renewcommand{\href}[2]{\hrefWithoutArrow{#1}{\ifthenelse{\equal{#2}{}}{ }{#2 }\raisebox{.15ex}{\footnotesize \faExternalLink*}}}
+\renewcommand{{\href}}[2]{{\hrefWithoutArrow{{#1}}{{\ifthenelse{{\equal{{#2}}{{}}}}{{ }}{{#2 }}\raisebox{{.15ex}}{{\footnotesize \faExternalLink*}}}}}}
 """
 
 
 def smart_escape_latex(text: str) -> str:
-    """
-    Escapes bare &, %, #, _ outside of $...$ math mode while preserving
-    existing LaTeX commands (e.g. \\textsuperscript, \\footnote, \\hrefWithoutArrow).
-    """
+    """Escapes &, %, #, _ outside $...$ math mode while preserving valid LaTeX commands."""
     if not text:
         return ""
     replacements = {"&": r"\&", "%": r"\%", "#": r"\#", "_": r"\_"}
@@ -185,7 +213,7 @@ def smart_escape_latex(text: str) -> str:
 
 
 # ==============================================================================
-# Pre-Loaded Data Extracted Directly from Your resume.tex
+# Pre-Loaded Data Extracted From Your resume.tex
 # ==============================================================================
 DEFAULT_HEADER = {
     "display_name": "JOSEPH CHAY",
@@ -200,7 +228,7 @@ DEFAULT_HEADER = {
 
 DEFAULT_PROFILES = [
     {
-        "name": "Active: Technology, AI & Multidisciplinary Interests",
+        "name": "0. Active: Technology, AI & Multidisciplinary Interests",
         "text": (
             "Technology by far sectoring the whole world through enhancements, opportunitize innovations in every economical domains. "
             "This instrument overabused in achievements by various artificial and machine intelligences is majorly diminished only in image, "
@@ -211,7 +239,7 @@ DEFAULT_PROFILES = [
         ),
     },
     {
-        "name": "Variant 1: AI, ML, Robotics & Data Engineering",
+        "name": "1. AI, ML, Robotics & Data Engineering",
         "text": (
             "Computer Science with Artificial Intelligence graduate and a Diploma holder in Information and Communication Technology with Software Engineering, "
             "bringing a strong passion and well-developed expertise in building intelligent, scalable systems that solve real-world problems. My skill set spans machine learning, "
@@ -220,7 +248,7 @@ DEFAULT_PROFILES = [
         ),
     },
     {
-        "name": "Variant 2: Cross-Industry AI & Full-Stack Engineering",
+        "name": "2. Cross-Industry AI & Full-Stack Engineering",
         "text": (
             "Worked on simple projects in university involving intelligent agents, robotics, object detection, RAG-based systems, chatbot agents, and large-scale data pipelines. "
             "My knowledge and hands-on expertise position me to contribute across industries such as healthcare (medical imaging, AI diagnostics), "
@@ -229,14 +257,14 @@ DEFAULT_PROFILES = [
         ),
     },
     {
-        "name": "Variant 3: Client Communication & Team Building",
+        "name": "3. Client Communication & Team Building",
         "text": (
             "Beyond software development, I carry great communication skills and motivation to work with people, including team buildings. "
             "Spoken roles interest me as it builds understanding and trust between people indulging clients into the products."
         ),
     },
     {
-        "name": "Variant 4: Systems Monitoring, Surveillance & Access Control",
+        "name": "4. Systems Monitoring, Surveillance & Access Control",
         "text": (
             "Beyond software development, I bring a strong aptitude for systems monitoring and technical troubleshooting, skills that translate directly into overseeing equipment-dependent environments. "
             "My background in computer vision and object detection gives me a practical understanding of how CCTV and surveillance systems function at a technical level, allowing me to quickly identify "
@@ -246,7 +274,7 @@ DEFAULT_PROFILES = [
         ),
     },
     {
-        "name": "Variant 5: Data Engineering & Operational Audits",
+        "name": "5. Data Engineering & Operational Audits",
         "text": (
             "My data engineering background also lends itself naturally to operational improvement initiatives. I am accustomed to building structured processes for collecting, organizing, and analyzing "
             "data to identify patterns and inefficiencies, an approach that applies directly to daily checklist audits, incident tracking, and reporting on recurring equipment or operational issues. "
@@ -267,8 +295,9 @@ DEFAULT_SECTION_ORDER = [
 ]
 
 DEFAULT_ITEMS = [
-    # --- EDUCATION ---
+    # EDUCATION
     {
+        "uid": "edu_phd",
         "enabled": True,
         "section": "Education",
         "type": "education",
@@ -288,6 +317,7 @@ DEFAULT_ITEMS = [
         ],
     },
     {
+        "uid": "edu_bsc",
         "enabled": True,
         "section": "Education",
         "type": "education",
@@ -303,6 +333,7 @@ DEFAULT_ITEMS = [
         ],
     },
     {
+        "uid": "edu_dip",
         "enabled": True,
         "section": "Education",
         "type": "education",
@@ -314,6 +345,7 @@ DEFAULT_ITEMS = [
         "bullets": ["CGPA: 3.89/4.00"],
     },
     {
+        "uid": "edu_igcse",
         "enabled": True,
         "section": "Education",
         "type": "education",
@@ -325,6 +357,7 @@ DEFAULT_ITEMS = [
         "bullets": ["Grades: 3A*, 5A, 2B"],
     },
     {
+        "uid": "edu_found",
         "enabled": True,
         "section": "Education",
         "type": "education",
@@ -335,9 +368,9 @@ DEFAULT_ITEMS = [
         "links": [],
         "bullets": ["Completed first year of IGCSE studies"],
     },
-
-    # --- INDUSTRIAL EXPERIENCE ---
+    # INDUSTRIAL EXPERIENCE
     {
+        "uid": "exp_shopee",
         "enabled": True,
         "section": "Industrial Experience",
         "type": "experience",
@@ -352,6 +385,7 @@ DEFAULT_ITEMS = [
         ],
     },
     {
+        "uid": "exp_ips_swe",
         "enabled": True,
         "section": "Industrial Experience",
         "type": "experience",
@@ -369,6 +403,7 @@ DEFAULT_ITEMS = [
         ],
     },
     {
+        "uid": "exp_ips_ai",
         "enabled": False,
         "section": "Industrial Experience",
         "type": "experience",
@@ -387,6 +422,7 @@ DEFAULT_ITEMS = [
         ],
     },
     {
+        "uid": "exp_spec",
         "enabled": True,
         "section": "Industrial Experience",
         "type": "experience",
@@ -401,9 +437,9 @@ DEFAULT_ITEMS = [
             "Python Scripts for Fortinet configuration conversions",
         ],
     },
-
-    # --- HONOURS & AWARDS ---
+    # HONOURS & AWARDS
     {
+        "uid": "awd_fyp",
         "enabled": False,
         "section": "Honours & Awards",
         "type": "award",
@@ -411,6 +447,7 @@ DEFAULT_ITEMS = [
         "date": "Jul 2025",
     },
     {
+        "uid": "awd_ind",
         "enabled": False,
         "section": "Honours & Awards",
         "type": "award",
@@ -418,6 +455,7 @@ DEFAULT_ITEMS = [
         "date": "Apr 2024",
     },
     {
+        "uid": "awd_abrsm_th",
         "enabled": False,
         "section": "Honours & Awards",
         "type": "award",
@@ -425,6 +463,7 @@ DEFAULT_ITEMS = [
         "date": "May 2020",
     },
     {
+        "uid": "awd_dhp",
         "enabled": True,
         "section": "Honours & Awards",
         "type": "award",
@@ -432,6 +471,7 @@ DEFAULT_ITEMS = [
         "date": "Dec 2019",
     },
     {
+        "uid": "awd_abrsm_pr",
         "enabled": True,
         "section": "Honours & Awards",
         "type": "award",
@@ -439,15 +479,16 @@ DEFAULT_ITEMS = [
         "date": "Jul 2019",
     },
     {
+        "uid": "awd_hp",
         "enabled": True,
         "section": "Honours & Awards",
         "type": "award",
         "title": "Head Prefect, Regent International School",
         "date": "Dec 2018",
     },
-
-    # --- CLIENT PROJECTS (Pre-loaded from commented block in resume.tex) ---
+    # CLIENT PROJECTS
     {
+        "uid": "cproj_yamaha",
         "enabled": False,
         "section": "Client Projects",
         "type": "project",
@@ -464,6 +505,7 @@ DEFAULT_ITEMS = [
         "extra_bullets": [],
     },
     {
+        "uid": "cproj_vixta",
         "enabled": False,
         "section": "Client Projects",
         "type": "project",
@@ -478,6 +520,7 @@ DEFAULT_ITEMS = [
         "extra_bullets": [],
     },
     {
+        "uid": "cproj_jessica",
         "enabled": False,
         "section": "Client Projects",
         "type": "project",
@@ -491,9 +534,9 @@ DEFAULT_ITEMS = [
         ],
         "extra_bullets": [],
     },
-
-    # --- PERSONAL PROJECTS (Active + Commented blocks from resume.tex) ---
+    # PERSONAL PROJECTS
     {
+        "uid": "pproj_docket",
         "enabled": True,
         "section": "Personal Projects",
         "type": "project",
@@ -505,6 +548,7 @@ DEFAULT_ITEMS = [
         "extra_bullets": [],
     },
     {
+        "uid": "pproj_codeflux",
         "enabled": True,
         "section": "Personal Projects",
         "type": "project",
@@ -516,6 +560,7 @@ DEFAULT_ITEMS = [
         "extra_bullets": [],
     },
     {
+        "uid": "pproj_restzero",
         "enabled": True,
         "section": "Personal Projects",
         "type": "project",
@@ -527,6 +572,7 @@ DEFAULT_ITEMS = [
         "extra_bullets": [],
     },
     {
+        "uid": "pproj_linguify",
         "enabled": False,
         "section": "Personal Projects",
         "type": "project",
@@ -538,6 +584,7 @@ DEFAULT_ITEMS = [
         "extra_bullets": [],
     },
     {
+        "uid": "pproj_sadldas",
         "enabled": False,
         "section": "Personal Projects",
         "type": "project",
@@ -551,10 +598,52 @@ DEFAULT_ITEMS = [
             {"label": "Paper", "url": "https://github.com/josephchay/SADLDAS/blob/main/ARS-2425-Task2-20580363.pdf"},
         ],
         "extra_bullets": [
-            "Solved 11 Gymnasium/MuJoCo continuous control benchmarks (Ant-v5, HalfCheetah-v5, Hopper-v5, Walker2d-v5, Humanoid-v5, BipedalWalker-v3) within leaderboard thresholds"
+            "Environments solved within leaderboard defined thresholds:",
+            "  - Mountain Car Continuous (Version 0)",
+            "  - Lunar Lander Continuous (Version 3)",
+            "  - Pendulum (Version 1)",
+            "  - Cart Pole (Version 1)",
+            "  - Bipedal Walker (Version 3)",
+            "  - Ant (Version 5)",
+            "  - Half Cheetah (Version 5)",
+            "  - Hopper (Version 5)",
+            "  - Pusher (Version 5)",
+            "  - Walker 2D (Version 5)",
+            "  - Humanoid (Version 5)",
         ],
     },
     {
+        "uid": "pproj_wsp",
+        "enabled": False,
+        "section": "Personal Projects",
+        "type": "project",
+        "title": "Workflow Satisfiability Problem",
+        "date": "Sep 2024 -- Dec 2024",
+        "subtitle_italic": "Constraint Satisfaction, Tooling solvers, Encoding Patterns, Mathematical Formulations, Symbolic AI",
+        "stack": "Genetic Evolutionary, Metaheuristic, Pigeonhole Principle, Bayesian Network",
+        "links": [
+            {"label": "Code", "url": "https://github.com/josephchay/wsp-symbolic-ai"},
+            {"label": "Paper", "url": "https://github.com/josephchay/wsp-symbolic-ai/blob/main/documentation.pdf"},
+        ],
+        "extra_bullets": [],
+    },
+    {
+        "uid": "pproj_timetabler",
+        "enabled": False,
+        "section": "Personal Projects",
+        "type": "project",
+        "title": "Assessment Timetabling Scheduler",
+        "date": "Sep 2024 -- Nov 2024",
+        "subtitle_italic": "Constraint Satisfaction Programming, Multi-Solver Optimization, Symbolic AI",
+        "stack": "SMT Solver, MILP Optimization, Evolutionary Algorithms, Metaheuristics",
+        "links": [
+            {"label": "Code", "url": "https://github.com/josephchay/assessment-timetabler"},
+            {"label": "Paper", "url": "https://github.com/josephchay/assessment-timetabler/blob/main/documentation.pdf"},
+        ],
+        "extra_bullets": [],
+    },
+    {
+        "uid": "pproj_soccer",
         "enabled": False,
         "section": "Personal Projects",
         "type": "project",
@@ -566,6 +655,7 @@ DEFAULT_ITEMS = [
         "extra_bullets": [],
     },
     {
+        "uid": "pproj_sd",
         "enabled": False,
         "section": "Personal Projects",
         "type": "project",
@@ -577,6 +667,7 @@ DEFAULT_ITEMS = [
         "extra_bullets": [],
     },
     {
+        "uid": "pproj_fridge",
         "enabled": False,
         "section": "Personal Projects",
         "type": "project",
@@ -591,6 +682,7 @@ DEFAULT_ITEMS = [
         "extra_bullets": [],
     },
     {
+        "uid": "pproj_binpack",
         "enabled": True,
         "section": "Personal Projects",
         "type": "project",
@@ -605,6 +697,7 @@ DEFAULT_ITEMS = [
         "extra_bullets": [],
     },
     {
+        "uid": "pproj_garbage",
         "enabled": True,
         "section": "Personal Projects",
         "type": "project",
@@ -619,6 +712,22 @@ DEFAULT_ITEMS = [
         "extra_bullets": [],
     },
     {
+        "uid": "pproj_blockchain",
+        "enabled": False,
+        "section": "Personal Projects",
+        "type": "project",
+        "title": "Inventory Management System, Blockchain Security Procedures",
+        "date": "Jan 2024 -- Mar 2024",
+        "subtitle_italic": "Blockchain, Supply Chain Management, Block Mining, User Role Management",
+        "stack": "C, C++, Cmake, Block Header, Merkle Root, Nonce Setting, Block Mining, Hashing",
+        "links": [
+            {"label": "Code", "url": "https://github.com/josephchay/inventory-transportation-management"},
+            {"label": "Paper", "url": "https://github.com/josephchay/inventory-transportation-management/blob/main/report-documentation.pdf"},
+        ],
+        "extra_bullets": [],
+    },
+    {
+        "uid": "pproj_jotit",
         "enabled": True,
         "section": "Personal Projects",
         "type": "project",
@@ -633,6 +742,7 @@ DEFAULT_ITEMS = [
         "extra_bullets": [],
     },
     {
+        "uid": "pproj_brick",
         "enabled": True,
         "section": "Personal Projects",
         "type": "project",
@@ -647,6 +757,7 @@ DEFAULT_ITEMS = [
         "extra_bullets": [],
     },
     {
+        "uid": "pproj_selayang",
         "enabled": True,
         "section": "Personal Projects",
         "type": "project",
@@ -657,9 +768,9 @@ DEFAULT_ITEMS = [
         "links": [{"label": "Code and Sample Screens", "url": "https://github.com/josephchay/hospital-selayang-datatics"}],
         "extra_bullets": [],
     },
-
-    # --- PROFICIENCY AND TOOLS ---
+    # PROFICIENCY AND TOOLS
     {
+        "uid": "sk_algo",
         "enabled": True,
         "section": "Proficiency and Tools",
         "type": "skill_group",
@@ -672,6 +783,7 @@ DEFAULT_ITEMS = [
         ],
     },
     {
+        "uid": "sk_app",
         "enabled": True,
         "section": "Proficiency and Tools",
         "type": "skill_group",
@@ -684,6 +796,7 @@ DEFAULT_ITEMS = [
         ],
     },
     {
+        "uid": "sk_misc",
         "enabled": True,
         "section": "Proficiency and Tools",
         "type": "skill_group",
@@ -694,9 +807,9 @@ DEFAULT_ITEMS = [
             "IDEs (VsCode, Intellij, IDLE)",
         ],
     },
-
-    # --- LANGUAGES ---
+    # LANGUAGES
     {
+        "uid": "lang_spoken",
         "enabled": True,
         "section": "Languages",
         "type": "skill_group",
@@ -708,39 +821,161 @@ DEFAULT_ITEMS = [
     },
 ]
 
+BUILT_IN_PRESETS = {
+    "AI / ML & Quantum Research (2-Page Target)": {
+        "profile_idx": 1,
+        "margin_cm": "1.5",
+        "enabled_uids": {
+            "edu_phd", "edu_bsc", "edu_dip",
+            "exp_ips_swe", "exp_ips_ai", "exp_spec",
+            "awd_fyp", "awd_ind",
+            "cproj_yamaha",
+            "pproj_linguify", "pproj_sadldas", "pproj_wsp", "pproj_timetabler", "pproj_soccer", "pproj_sd", "pproj_fridge",
+            "sk_algo", "sk_app", "sk_misc", "lang_spoken",
+        },
+    },
+    "Full-Stack & Software Engineering (2-Page Target)": {
+        "profile_idx": 2,
+        "margin_cm": "1.5",
+        "enabled_uids": {
+            "edu_bsc", "edu_dip",
+            "exp_ips_swe", "exp_spec",
+            "awd_ind", "awd_dhp",
+            "cproj_vixta", "cproj_jessica",
+            "pproj_docket", "pproj_codeflux", "pproj_garbage", "pproj_blockchain", "pproj_jotit", "pproj_selayang",
+            "sk_algo", "sk_app", "sk_misc", "lang_spoken",
+        },
+    },
+    "Systems, Operations & Commercial": {
+        "profile_idx": 4,
+        "margin_cm": "1.6",
+        "enabled_uids": {
+            "edu_bsc", "edu_dip",
+            "exp_shopee", "exp_ips_swe", "exp_spec",
+            "awd_dhp", "awd_hp", "awd_abrsm_pr",
+            "pproj_fridge", "pproj_garbage", "pproj_selayang",
+            "sk_app", "sk_misc", "lang_spoken",
+        },
+    },
+}
+
 
 # ==============================================================================
 # Main Application Class
 # ==============================================================================
-class JosephResumeStudio:
+class JosephResumeStudioV2:
     def __init__(self, root: tk.Tk):
         self.root = root
-        self.root.title("Joseph Chay — LaTeX Resume Generator & Section Manager")
-        self.root.geometry("1400x860")
-        self.root.minsize(1100, 680)
+        self.root.title("Joseph Chay — LaTeX Resume Studio v2")
+        self.root.geometry("1460x890")
+        self.root.minsize(1140, 700)
         self.root.configure(bg=COLORS["bg_main"])
 
+        self.undo_stack: list[str] = []
+        self.redo_stack: list[str] = []
+
+        self.layout = copy.deepcopy(DEFAULT_LAYOUT)
         self.header = copy.deepcopy(DEFAULT_HEADER)
         self.profiles = copy.deepcopy(DEFAULT_PROFILES)
         self.active_profile_idx = 0
         self.profile_enabled = True
         self.section_order = copy.deepcopy(DEFAULT_SECTION_ORDER)
         self.items = copy.deepcopy(DEFAULT_ITEMS)
+        self.custom_presets = copy.deepcopy(BUILT_IN_PRESETS)
 
         self.filter_sec_var = tk.StringVar(value="All Sections")
+        self.filter_state_var = tk.StringVar(value="All")
         self.search_var = tk.StringVar()
+        self.preset_var = tk.StringVar(value="Select Tailoring Preset...")
         self.auto_save_var = tk.BooleanVar(value=True)
         self.auto_compile_var = tk.BooleanVar(value=False)
 
         self.visible_indices: list[int] = []
         self.item_line_map: dict[int, tuple[int, int]] = {}
 
+        # PDF viewer state
+        self.pdf_images: list[tk.PhotoImage] = []
+        self.pdf_page_idx = 0
+        self.pdf_zoom = 1.25
+
         self._load_state()
+        self._push_undo()
         self._setup_styles()
         self._build_ui()
         self._bind_shortcuts()
         self.refresh_all(compile_pdf=False)
         self._inspect_log()
+        if os.path.exists(PDF_FILE):
+            self._render_pdf_pages()
+
+    # ------------------------------------------------------------------
+    # Undo / Redo Snapshot Engine
+    # ------------------------------------------------------------------
+    def _serialize(self) -> str:
+        return json.dumps(
+            {
+                "layout": self.layout,
+                "header": self.header,
+                "profiles": self.profiles,
+                "active_profile_idx": self.active_profile_idx,
+                "profile_enabled": self.profile_enabled,
+                "section_order": self.section_order,
+                "items": self.items,
+                "custom_presets": {
+                    k: {
+                        "profile_idx": v["profile_idx"],
+                        "margin_cm": v["margin_cm"],
+                        "enabled_uids": list(v["enabled_uids"]),
+                    }
+                    for k, v in self.custom_presets.items()
+                },
+            },
+            ensure_ascii=False,
+        )
+
+    def _deserialize(self, raw: str):
+        d = json.loads(raw)
+        self.layout = d.get("layout", self.layout)
+        self.header = d.get("header", self.header)
+        self.profiles = d.get("profiles", self.profiles)
+        self.active_profile_idx = d.get("active_profile_idx", self.active_profile_idx)
+        self.profile_enabled = d.get("profile_enabled", self.profile_enabled)
+        self.section_order = d.get("section_order", self.section_order)
+        self.items = d.get("items", self.items)
+        if "custom_presets" in d:
+            self.custom_presets = {
+                k: {
+                    "profile_idx": v["profile_idx"],
+                    "margin_cm": v["margin_cm"],
+                    "enabled_uids": set(v["enabled_uids"]),
+                }
+                for k, v in d["custom_presets"].items()
+            }
+
+    def _push_undo(self):
+        snap = self._serialize()
+        if not self.undo_stack or self.undo_stack[-1] != snap:
+            self.undo_stack.append(snap)
+            if len(self.undo_stack) > 50:
+                self.undo_stack.pop(0)
+            self.redo_stack.clear()
+
+    def undo(self, _e=None):
+        if len(self.undo_stack) <= 1:
+            return
+        self.redo_stack.append(self.undo_stack.pop())
+        self._deserialize(self.undo_stack[-1])
+        self.refresh_all(compile_pdf=False)
+        self.status_lbl.config(text="↶ Undid last change.")
+
+    def redo(self, _e=None):
+        if not self.redo_stack:
+            return
+        nxt = self.redo_stack.pop()
+        self.undo_stack.append(nxt)
+        self._deserialize(nxt)
+        self.refresh_all(compile_pdf=False)
+        self.status_lbl.config(text="↷ Redid change.")
 
     # ------------------------------------------------------------------
     # Styling & Button Factory
@@ -774,7 +1009,7 @@ class JosephResumeStudio:
             foreground=[("selected", "#003566")],
         )
 
-    def _btn(self, parent, text: str, cmd, bg: str, hover: str, pad=(11, 5)) -> tk.Button:
+    def _btn(self, parent, text: str, cmd, bg: str, hover: str, pad=(10, 5)) -> tk.Button:
         b = tk.Button(
             parent,
             text=text,
@@ -798,15 +1033,15 @@ class JosephResumeStudio:
     # Build Main Workspace Layout
     # ------------------------------------------------------------------
     def _build_ui(self):
-        # 1. Top Header Banner
-        banner = tk.Frame(self.root, bg=COLORS["bg_header"], padx=18, pady=12)
+        # 1. Top Navy Banner
+        banner = tk.Frame(self.root, bg=COLORS["bg_header"], padx=18, pady=11)
         banner.pack(fill=tk.X)
 
         left_info = tk.Frame(banner, bg=COLORS["bg_header"])
         left_info.pack(side=tk.LEFT)
         tk.Label(
             left_info,
-            text="JOSEPH CHAY — LaTeX Resume Studio",
+            text="JOSEPH CHAY — LaTeX Resume Studio v2",
             font=("Segoe UI", 14, "bold"),
             bg=COLORS["bg_header"],
             fg="#ffffff",
@@ -822,80 +1057,117 @@ class JosephResumeStudio:
 
         right_btns = tk.Frame(banner, bg=COLORS["bg_header"])
         right_btns.pack(side=tk.RIGHT)
-        self._btn(right_btns, "👤 Contact Info", self.open_contact_modal, "#1e40af", "#1d4ed8").pack(side=tk.LEFT, padx=4)
-        self._btn(right_btns, "📝 Profile Summary", self.open_profile_modal, "#1e40af", "#1d4ed8").pack(side=tk.LEFT, padx=4)
-        self._btn(right_btns, "📑 Section Order", self.open_section_order_modal, "#1e40af", "#1d4ed8").pack(side=tk.LEFT, padx=4)
-        self._btn(right_btns, "⚙ Compile PDF", self.compile_pdf, COLORS["emerald"], COLORS["emerald_hover"]).pack(side=tk.LEFT, padx=4)
-        self._btn(right_btns, "📄 Open PDF", self.open_pdf, "#0284c7", "#0369a1").pack(side=tk.LEFT, padx=4)
+        self._btn(right_btns, "↶ Undo", self.undo, "#1e3a8a", "#1d4ed8", pad=(8, 5)).pack(side=tk.LEFT, padx=2)
+        self._btn(right_btns, "↷ Redo", self.redo, "#1e3a8a", "#1d4ed8", pad=(8, 5)).pack(side=tk.LEFT, padx=(2, 8))
+        self._btn(right_btns, "👤 Contact", self.open_contact_modal, "#1e40af", "#1d4ed8").pack(side=tk.LEFT, padx=3)
+        self._btn(right_btns, "📝 Profile", self.open_profile_modal, "#1e40af", "#1d4ed8").pack(side=tk.LEFT, padx=3)
+        self._btn(right_btns, "📐 Page-Fit", self.open_layout_modal, "#1e40af", "#1d4ed8").pack(side=tk.LEFT, padx=3)
+        self._btn(right_btns, "📑 Sections", self.open_section_order_modal, "#1e40af", "#1d4ed8").pack(side=tk.LEFT, padx=3)
+        self._btn(right_btns, "🎯 JD Matcher", self.open_jd_matcher_modal, "#6d28d9", "#5b21b6").pack(side=tk.LEFT, padx=3)
+        self._btn(right_btns, "⚙ Compile PDF", self.compile_pdf, COLORS["emerald"], COLORS["emerald_hover"]).pack(side=tk.LEFT, padx=(8, 3))
+        self._btn(right_btns, "📄 External PDF", self.open_pdf, "#0284c7", "#0369a1").pack(side=tk.LEFT, padx=3)
 
-        # 2. Quick-Add Action Ribbon
+        # 2. Quick-Add & Role Tailoring Ribbon
         ribbon = tk.Frame(
-            self.root, bg=COLORS["bg_card"], padx=14, pady=10, highlightthickness=1, highlightbackground=COLORS["border"]
+            self.root, bg=COLORS["bg_card"], padx=14, pady=9, highlightthickness=1, highlightbackground=COLORS["border"]
         )
         ribbon.pack(fill=tk.X, padx=14, pady=(10, 6))
 
         tk.Label(
-            ribbon, text="ADD NEW ENTRY:", font=("Segoe UI", 9, "bold"), bg=COLORS["bg_card"], fg=COLORS["fg_muted"]
-        ).pack(side=tk.LEFT, padx=(0, 8))
+            ribbon, text="ADD:", font=("Segoe UI", 9, "bold"), bg=COLORS["bg_card"], fg=COLORS["fg_muted"]
+        ).pack(side=tk.LEFT, padx=(0, 6))
 
         add_specs = [
-            ("＋ Add Project", "project", COLORS["primary"], COLORS["primary_hover"]),
-            ("＋ Add Experience", "experience", "#0284c7", "#0369a1"),
-            ("＋ Add Education", "education", "#0d9488", "#0f766e"),
-            ("＋ Add Honour / Award", "award", "#7c3aed", "#6d28d9"),
-            ("＋ Add Skill / Language Group", "skill_group", "#d97706", "#b45309"),
-            ("＋ Add Custom Section Item", "custom", "#475569", "#334155"),
+            ("＋ Project", "project", COLORS["primary"], COLORS["primary_hover"]),
+            ("＋ Experience", "experience", "#0284c7", "#0369a1"),
+            ("＋ Education", "education", "#0d9488", "#0f766e"),
+            ("＋ Award", "award", "#7c3aed", "#6d28d9"),
+            ("＋ Skill Group", "skill_group", "#d97706", "#b45309"),
+            ("＋ Custom Item", "custom", "#475569", "#334155"),
         ]
         for label, itype, bg_c, hov_c in add_specs:
-            self._btn(ribbon, label, lambda t=itype: self.open_item_modal(t), bg_c, hov_c, pad=(10, 5)).pack(
-                side=tk.LEFT, padx=3
+            self._btn(ribbon, label, lambda t=itype: self.open_item_modal(t), bg_c, hov_c, pad=(9, 4)).pack(
+                side=tk.LEFT, padx=2
             )
 
-        # 3. Main Split Pane (Left: Filterable Item Table | Right: Live resume.tex Code)
+        # Right side of ribbon: Role Tailoring Preset Switcher
+        preset_box = tk.Frame(ribbon, bg=COLORS["bg_card"])
+        preset_box.pack(side=tk.RIGHT)
+        tk.Label(
+            preset_box, text="Tailor Preset:", font=("Segoe UI", 9, "bold"), bg=COLORS["bg_card"], fg=COLORS["fg_muted"]
+        ).pack(side=tk.LEFT, padx=(0, 6))
+
+        self.preset_combo = ttk.Combobox(
+            preset_box,
+            textvariable=self.preset_var,
+            values=list(self.custom_presets.keys()),
+            width=34,
+            state="readonly",
+        )
+        self.preset_combo.pack(side=tk.LEFT, padx=2)
+        self.preset_combo.bind("<<ComboboxSelected>>", self.apply_tailoring_preset)
+        self._btn(preset_box, "+ Save Preset", self.save_new_preset_dialog, "#475569", "#334155", pad=(8, 4)).pack(
+            side=tk.LEFT, padx=(4, 0)
+        )
+
+        # 3. Main Split Pane (Left: Multi-Select Table | Right: Tabbed LaTeX + Visual PDF Preview)
         paned = ttk.PanedWindow(self.root, orient=tk.HORIZONTAL)
         paned.pack(fill=tk.BOTH, expand=True, padx=14, pady=6)
 
-        # --- LEFT PANEL: Structured Items Table ---
+        # --- LEFT PANEL ---
         left_card = tk.Frame(
             paned, bg=COLORS["bg_card"], highlightthickness=1, highlightbackground=COLORS["border"]
         )
         paned.add(left_card, weight=5)
 
-        filter_bar = tk.Frame(left_card, bg=COLORS["bg_card"], padx=12, pady=10)
+        filter_bar = tk.Frame(left_card, bg=COLORS["bg_card"], padx=12, pady=9)
         filter_bar.pack(fill=tk.X)
 
         tk.Label(filter_bar, text="Section:", bg=COLORS["bg_card"], fg=COLORS["fg_muted"], font=("Segoe UI", 9, "bold")).pack(
             side=tk.LEFT
         )
-        self.sec_filter_combo = ttk.Combobox(filter_bar, textvariable=self.filter_sec_var, width=22, state="readonly")
-        self.sec_filter_combo.pack(side=tk.LEFT, padx=(6, 14))
+        self.sec_filter_combo = ttk.Combobox(filter_bar, textvariable=self.filter_sec_var, width=20, state="readonly")
+        self.sec_filter_combo.pack(side=tk.LEFT, padx=(5, 10))
         self.sec_filter_combo.bind("<<ComboboxSelected>>", lambda e: self.refresh_all(compile_pdf=False))
+
+        tk.Label(filter_bar, text="Status:", bg=COLORS["bg_card"], fg=COLORS["fg_muted"], font=("Segoe UI", 9, "bold")).pack(
+            side=tk.LEFT
+        )
+        state_combo = ttk.Combobox(
+            filter_bar,
+            textvariable=self.filter_state_var,
+            values=["All", "Active Only (✓)", "Archived / Commented (✗)"],
+            width=21,
+            state="readonly",
+        )
+        state_combo.pack(side=tk.LEFT, padx=(5, 10))
+        state_combo.bind("<<ComboboxSelected>>", lambda e: self.refresh_all(compile_pdf=False))
 
         tk.Label(filter_bar, text="Search:", bg=COLORS["bg_card"], fg=COLORS["fg_muted"], font=("Segoe UI", 9, "bold")).pack(
             side=tk.LEFT
         )
-        ttk.Entry(filter_bar, textvariable=self.search_var, width=22).pack(side=tk.LEFT, padx=6)
+        ttk.Entry(filter_bar, textvariable=self.search_var, width=18).pack(side=tk.LEFT, padx=5)
         self.search_var.trace_add("write", lambda *_: self.refresh_all(compile_pdf=False))
 
-        self.stats_lbl = tk.Label(filter_bar, text="", bg=COLORS["bg_card"], fg=COLORS["fg_muted"], font=("Segoe UI", 9))
+        self.stats_lbl = tk.Label(filter_bar, text="", bg=COLORS["bg_card"], fg=COLORS["fg_muted"], font=("Segoe UI", 9, "bold"))
         self.stats_lbl.pack(side=tk.RIGHT)
 
         tree_wrap = tk.Frame(left_card, bg=COLORS["bg_card"], padx=12)
         tree_wrap.pack(fill=tk.BOTH, expand=True)
 
         cols = ("active", "section", "title", "detail", "date")
-        self.tree = ttk.Treeview(tree_wrap, columns=cols, show="headings", style="CV.Treeview", selectmode="browse")
-        self.tree.heading("active", text="Active")
+        self.tree = ttk.Treeview(tree_wrap, columns=cols, show="headings", style="CV.Treeview", selectmode="extended")
+        self.tree.heading("active", text="On")
         self.tree.heading("section", text="Section")
         self.tree.heading("title", text="Title / Institution / Project")
         self.tree.heading("detail", text="Role / Degree / Tech Stack")
         self.tree.heading("date", text="Date")
 
-        self.tree.column("active", width=52, anchor=tk.CENTER, stretch=False)
-        self.tree.column("section", width=135, anchor=tk.W, stretch=False)
-        self.tree.column("title", width=230, anchor=tk.W, stretch=True)
-        self.tree.column("detail", width=200, anchor=tk.W, stretch=True)
-        self.tree.column("date", width=120, anchor=tk.E, stretch=False)
+        self.tree.column("active", width=44, anchor=tk.CENTER, stretch=False)
+        self.tree.column("section", width=130, anchor=tk.W, stretch=False)
+        self.tree.column("title", width=225, anchor=tk.W, stretch=True)
+        self.tree.column("detail", width=195, anchor=tk.W, stretch=True)
+        self.tree.column("date", width=115, anchor=tk.E, stretch=False)
 
         self.tree.tag_configure("on", foreground="#0f172a")
         self.tree.tag_configure("off", foreground="#94a3b8")
@@ -909,14 +1181,14 @@ class JosephResumeStudio:
         self.tree.bind("<Double-1>", lambda e: self.edit_selected())
         self.tree.bind("<space>", lambda e: self.toggle_selected())
 
-        # Table Action Buttons
+        # Table Action Bar
         tbl_bar = tk.Frame(left_card, bg="#f8fafc", padx=12, pady=9)
         tbl_bar.pack(fill=tk.X, side=tk.BOTTOM)
 
-        self._btn(tbl_bar, "✏ Edit (Double-Click)", self.edit_selected, COLORS["primary"], COLORS["primary_hover"], pad=(9, 4)).pack(
+        self._btn(tbl_bar, "✏ Edit", self.edit_selected, COLORS["primary"], COLORS["primary_hover"], pad=(10, 4)).pack(
             side=tk.LEFT, padx=2
         )
-        self._btn(tbl_bar, "✓/✗ Toggle Active (Space)", self.toggle_selected, "#475569", "#334155", pad=(9, 4)).pack(
+        self._btn(tbl_bar, "✓/✗ Toggle (Space)", self.toggle_selected, "#475569", "#334155", pad=(9, 4)).pack(
             side=tk.LEFT, padx=2
         )
         self._btn(tbl_bar, "⧉ Clone", self.clone_selected, "#475569", "#334155", pad=(9, 4)).pack(side=tk.LEFT, padx=2)
@@ -924,21 +1196,28 @@ class JosephResumeStudio:
         self._btn(tbl_bar, "▼ Down", lambda: self.move_selected(1), "#64748b", "#475569", pad=(8, 4)).pack(side=tk.LEFT, padx=2)
         self._btn(tbl_bar, "🗑 Delete", self.delete_selected, COLORS["danger"], "#b91c1c", pad=(9, 4)).pack(side=tk.RIGHT, padx=2)
 
-        # --- RIGHT PANEL: Live LaTeX Preview ---
+        # --- RIGHT PANEL: Tabbed LaTeX Source + Visual PDF Viewer ---
         right_card = tk.Frame(
-            paned, bg=COLORS["code_bg"], highlightthickness=1, highlightbackground=COLORS["border"]
+            paned, bg=COLORS["bg_card"], highlightthickness=1, highlightbackground=COLORS["border"]
         )
         paned.add(right_card, weight=4)
 
-        code_top = tk.Frame(right_card, bg="#181825", padx=12, pady=8)
+        self.preview_nb = ttk.Notebook(right_card)
+        self.preview_nb.pack(fill=tk.BOTH, expand=True)
+
+        # Tab A: LaTeX Code
+        code_tab = tk.Frame(self.preview_nb, bg=COLORS["code_bg"])
+        self.preview_nb.add(code_tab, text="<> Generated resume.tex")
+
+        code_top = tk.Frame(code_tab, bg="#181825", padx=12, pady=7)
         code_top.pack(fill=tk.X)
         tk.Label(
-            code_top, text="GENERATED RESUME.TEX (EXACT RENDERCY TEMPLATE)", font=("Segoe UI", 9, "bold"), bg="#181825", fg="#a6adc8"
+            code_top, text="LIVE RENDERCY SOURCE", font=("Segoe UI", 9, "bold"), bg="#181825", fg="#a6adc8"
         ).pack(side=tk.LEFT)
         self._btn(code_top, "💾 Save As...", self.save_tex_as, "#313244", "#45475a", pad=(8, 3)).pack(side=tk.RIGHT, padx=2)
         self._btn(code_top, "📋 Copy Code", self.copy_tex, "#313244", "#45475a", pad=(8, 3)).pack(side=tk.RIGHT, padx=2)
 
-        code_wrap = tk.Frame(right_card, bg=COLORS["code_bg"])
+        code_wrap = tk.Frame(code_tab, bg=COLORS["code_bg"])
         code_wrap.pack(fill=tk.BOTH, expand=True)
 
         self.code_text = tk.Text(
@@ -954,7 +1233,7 @@ class JosephResumeStudio:
             pady=8,
         )
         cy = ttk.Scrollbar(code_wrap, orient=tk.VERTICAL, command=self.code_text.yview)
-        cx = ttk.Scrollbar(right_card, orient=tk.HORIZONTAL, command=self.code_text.xview)
+        cx = ttk.Scrollbar(code_tab, orient=tk.HORIZONTAL, command=self.code_text.xview)
         self.code_text.configure(yscrollcommand=cy.set, xscrollcommand=cx.set)
         self.code_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         cy.pack(side=tk.RIGHT, fill=tk.Y)
@@ -967,7 +1246,34 @@ class JosephResumeStudio:
         self.code_text.tag_configure("comment", foreground="#6c7086")
         self.code_text.tag_configure("active_block", background=COLORS["hl_line"])
 
-        # 4. Bottom Status & Telemetry Bar
+        # Tab B: Visual Rendered PDF Preview
+        pdf_tab = tk.Frame(self.preview_nb, bg="#cbd5e1")
+        self.preview_nb.add(pdf_tab, text="📄 Visual PDF Preview")
+
+        pdf_bar = tk.Frame(pdf_tab, bg="#e2e8f0", padx=10, pady=6)
+        pdf_bar.pack(fill=tk.X)
+        self._btn(pdf_bar, "◀ Prev", lambda: self._change_pdf_page(-1), "#475569", "#334155", pad=(8, 2)).pack(side=tk.LEFT, padx=2)
+        self.pdf_page_lbl = tk.Label(pdf_bar, text="Page 1 / 1", bg="#e2e8f0", font=("Segoe UI", 9, "bold"), width=12)
+        self.pdf_page_lbl.pack(side=tk.LEFT, padx=4)
+        self._btn(pdf_bar, "Next ▶", lambda: self._change_pdf_page(1), "#475569", "#334155", pad=(8, 2)).pack(side=tk.LEFT, padx=2)
+
+        self._btn(pdf_bar, "🔄 Refresh PDF", self.compile_pdf, COLORS["emerald"], COLORS["emerald_hover"], pad=(8, 2)).pack(
+            side=tk.RIGHT, padx=2
+        )
+        self._btn(pdf_bar, "Zoom +", lambda: self._zoom_pdf(0.2), "#475569", "#334155", pad=(7, 2)).pack(side=tk.RIGHT, padx=2)
+        self._btn(pdf_bar, "Zoom -", lambda: self._zoom_pdf(-0.2), "#475569", "#334155", pad=(7, 2)).pack(side=tk.RIGHT, padx=2)
+
+        canvas_wrap = tk.Frame(pdf_tab, bg="#94a3b8")
+        canvas_wrap.pack(fill=tk.BOTH, expand=True)
+        self.pdf_canvas = tk.Canvas(canvas_wrap, bg="#94a3b8", highlightthickness=0)
+        py_scroll = ttk.Scrollbar(canvas_wrap, orient=tk.VERTICAL, command=self.pdf_canvas.yview)
+        px_scroll = ttk.Scrollbar(pdf_tab, orient=tk.HORIZONTAL, command=self.pdf_canvas.xview)
+        self.pdf_canvas.configure(yscrollcommand=py_scroll.set, xscrollcommand=px_scroll.set)
+        self.pdf_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        py_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        px_scroll.pack(fill=tk.X, side=tk.BOTTOM)
+
+        # 4. Bottom Status Bar
         status_bar = tk.Frame(self.root, bg="#e2e8f0", padx=14, pady=6)
         status_bar.pack(fill=tk.X, side=tk.BOTTOM)
 
@@ -984,17 +1290,226 @@ class JosephResumeStudio:
 
     def _bind_shortcuts(self):
         self.root.bind("<Control-s>", lambda e: self.refresh_all(compile_pdf=True))
+        self.root.bind("<Control-z>", self.undo)
+        self.root.bind("<Control-y>", self.redo)
         self.root.bind("<Control-n>", lambda e: self.open_item_modal("project"))
 
     # ------------------------------------------------------------------
-    # Tailored Add / Edit Modal Forms (Matching Every Section in resume.tex)
+    # Tailoring Presets
+    # ------------------------------------------------------------------
+    def apply_tailoring_preset(self, _e=None):
+        pname = self.preset_var.get()
+        if pname not in self.custom_presets:
+            return
+        self._push_undo()
+        cfg = self.custom_presets[pname]
+        self.active_profile_idx = min(cfg["profile_idx"], len(self.profiles) - 1)
+        self.profile_enabled = True
+        self.layout["margin_cm"] = cfg.get("margin_cm", self.layout["margin_cm"])
+        target_uids = cfg["enabled_uids"]
+        for it in self.items:
+            it["enabled"] = it.get("uid") in target_uids
+        self.refresh_all(compile_pdf=self.auto_compile_var.get())
+        self.status_lbl.config(text=f"Applied tailoring preset '{pname}'.")
+
+    def save_new_preset_dialog(self):
+        dlg = tk.Toplevel(self.root)
+        dlg.title("Save Current Selection as Tailoring Preset")
+        dlg.geometry("380x140")
+        dlg.configure(bg=COLORS["bg_card"])
+        dlg.transient(self.root)
+        dlg.grab_set()
+
+        tk.Label(dlg, text="Preset Name:", bg=COLORS["bg_card"], font=("Segoe UI", 9, "bold")).pack(pady=(14, 4))
+        nvar = tk.StringVar(value="Custom Role Preset")
+        ttk.Entry(dlg, textvariable=nvar, width=36).pack(pady=4)
+
+        def save():
+            name = nvar.get().strip()
+            if name:
+                self._push_undo()
+                self.custom_presets[name] = {
+                    "profile_idx": self.active_profile_idx,
+                    "margin_cm": self.layout["margin_cm"],
+                    "enabled_uids": {it.get("uid") for it in self.items if it.get("enabled", True)},
+                }
+                self.preset_combo["values"] = list(self.custom_presets.keys())
+                self.preset_var.set(name)
+                self._save_state()
+                self.status_lbl.config(text=f"Saved preset '{name}'.")
+            dlg.destroy()
+
+        self._btn(dlg, "✓ Save Preset", save, COLORS["emerald"], COLORS["emerald_hover"]).pack(pady=8)
+
+    # ------------------------------------------------------------------
+    # Page-Fit & Layout Tuner Modal
+    # ------------------------------------------------------------------
+    def open_layout_modal(self):
+        dlg = tk.Toplevel(self.root)
+        dlg.title("Page-Fit & Visual Geometry Tuner")
+        dlg.geometry("500x430")
+        dlg.configure(bg=COLORS["bg_card"])
+        dlg.transient(self.root)
+        dlg.grab_set()
+
+        top = tk.Frame(dlg, bg=COLORS["bg_header"], padx=16, pady=10)
+        top.pack(fill=tk.X)
+        tk.Label(top, text="📐 Page-Fit & LaTeX Geometry Tuner", font=("Segoe UI", 11, "bold"), bg=COLORS["bg_header"], fg="#fff").pack(side=tk.LEFT)
+
+        body = tk.Frame(dlg, bg=COLORS["bg_card"], padx=18, pady=12)
+        body.pack(fill=tk.BOTH, expand=True)
+        body.columnconfigure(1, weight=1)
+
+        # Quick Margin Presets
+        p_row = tk.Frame(body, bg=COLORS["bg_card"])
+        p_row.grid(row=0, column=0, columnspan=2, sticky=tk.EW, pady=(0, 10))
+
+        v_margin = tk.StringVar(value=self.layout["margin_cm"])
+        v_rcol = tk.StringVar(value=self.layout["right_col_cm"])
+        v_sb = tk.StringVar(value=self.layout["sec_before_cm"])
+        v_sa = tk.StringVar(value=self.layout["sec_after_cm"])
+        v_glyph = tk.StringVar(value=self.layout["bullet_glyph"])
+        v_rgb = tk.StringVar(value=self.layout["primary_rgb"])
+        v_lastpage = tk.BooleanVar(value=self.layout["footer_page_of_last"])
+
+        def set_preset(m, sb, sa):
+            v_margin.set(m)
+            v_sb.set(sb)
+            v_sa.set(sa)
+
+        self._btn(p_row, "Original (2.0cm)", lambda: set_preset("2.0", "0.3", "0.2"), "#475569", "#334155", pad=(8, 3)).pack(side=tk.LEFT, padx=2)
+        self._btn(p_row, "2-Page Fit (1.4cm)", lambda: set_preset("1.4", "0.22", "0.14"), COLORS["primary"], COLORS["primary_hover"], pad=(8, 3)).pack(side=tk.LEFT, padx=2)
+        self._btn(p_row, "1-Page Tight (1.1cm)", lambda: set_preset("1.1", "0.15", "0.08"), "#0d9488", "#0f766e", pad=(8, 3)).pack(side=tk.LEFT, padx=2)
+
+        rows = [
+            ("Page Margins (cm):", v_margin),
+            ("Date Column Width (cm):", v_rcol),
+            ("Section Space Before (cm):", v_sb),
+            ("Section Space After (cm):", v_sa),
+            ("Bullet Glyph (\\circ / \\bullet):", v_glyph),
+            ("Primary RGB Color:", v_rgb),
+        ]
+        for idx, (lbl, var) in enumerate(rows, start=1):
+            tk.Label(body, text=lbl, bg=COLORS["bg_card"], font=("Segoe UI", 9, "bold")).grid(row=idx, column=0, sticky=tk.W, pady=5)
+            ttk.Entry(body, textvariable=var, width=22).grid(row=idx, column=1, sticky=tk.EW, pady=5)
+
+        def pick_rgb():
+            c = colorchooser.askcolor()
+            if c and c[0]:
+                v_rgb.set(f"{int(c[0][0])}, {int(c[0][1])}, {int(c[0][2])}")
+
+        self._btn(body, "🎨 Pick RGB Color", pick_rgb, "#475569", "#334155", pad=(8, 3)).grid(row=7, column=0, sticky=tk.W, pady=6)
+        ttk.Checkbutton(body, text="Footer: 'Page X of Y'", variable=v_lastpage).grid(row=7, column=1, sticky=tk.W, pady=6)
+
+        def apply_layout():
+            self._push_undo()
+            self.layout["margin_cm"] = v_margin.get().strip()
+            self.layout["right_col_cm"] = v_rcol.get().strip()
+            self.layout["sec_before_cm"] = v_sb.get().strip()
+            self.layout["sec_after_cm"] = v_sa.get().strip()
+            self.layout["bullet_glyph"] = v_glyph.get().strip()
+            self.layout["primary_rgb"] = v_rgb.get().strip()
+            self.layout["footer_page_of_last"] = v_lastpage.get()
+            dlg.destroy()
+            self.refresh_all(compile_pdf=self.auto_compile_var.get())
+
+        self._btn(body, "✓ Apply Layout", apply_layout, COLORS["emerald"], COLORS["emerald_hover"]).grid(
+            row=8, column=1, sticky=tk.E, pady=(12, 0)
+        )
+
+    # ------------------------------------------------------------------
+    # Job Description Keyword Matcher & Archived Item Finder
+    # ------------------------------------------------------------------
+    def open_jd_matcher_modal(self):
+        dlg = tk.Toplevel(self.root)
+        dlg.title("Job Description Keyword Matcher & Archive Finder")
+        dlg.geometry("760x580")
+        dlg.configure(bg=COLORS["bg_card"])
+        dlg.transient(self.root)
+
+        top = tk.Frame(dlg, bg=COLORS["bg_header"], padx=16, pady=10)
+        top.pack(fill=tk.X)
+        tk.Label(top, text="🎯 JD Keyword Matcher (Finds Relevant Archived / Disabled Projects)", font=("Segoe UI", 11, "bold"), bg=COLORS["bg_header"], fg="#fff").pack(side=tk.LEFT)
+
+        body = tk.Frame(dlg, bg=COLORS["bg_card"], padx=16, pady=12)
+        body.pack(fill=tk.BOTH, expand=True)
+
+        tk.Label(body, text="Paste Target Job Description:", bg=COLORS["bg_card"], font=("Segoe UI", 9, "bold")).pack(anchor=tk.W)
+        jd_box = tk.Text(body, height=7, font=("Segoe UI", 9), bg="#f8fafc", relief=tk.SOLID, bd=1)
+        jd_box.pack(fill=tk.X, pady=(4, 8))
+
+        out_box = tk.Text(body, height=13, font=("Consolas", 9), bg="#f8fafc", relief=tk.SOLID, bd=1)
+        out_box.pack(fill=tk.BOTH, expand=True, pady=(4, 8))
+
+        matched_disabled_items: list[dict] = []
+
+        def analyze():
+            jd = jd_box.get("1.0", tk.END).strip()
+            if not jd:
+                return
+            stop = {
+                "the", "and", "for", "with", "you", "will", "are", "that", "this", "from", "have",
+                "our", "your", "work", "working", "team", "role", "experience", "years", "ability",
+                "strong", "skills", "knowledge", "using", "build", "develop", "design", "degree",
+                "computer", "science", "engineering", "related", "field", "plus", "preferred",
+            }
+            kws = sorted({
+                tok.strip(".-/")
+                for tok in re.findall(r"[A-Za-z][A-Za-z0-9\+\#\.\/\-]{2,}", jd)
+                if len(tok) >= 3 and tok.lower() not in stop and not tok.isdigit()
+            })
+
+            active_blob = self.generate_latex().lower()
+            matched = [k for k in kws if k.lower() in active_blob]
+            missing = [k for k in kws if k.lower() not in active_blob]
+
+            matched_disabled_items.clear()
+            for it in self.items:
+                if not it.get("enabled", True):
+                    it_blob = json.dumps(it).lower()
+                    hits = [m for m in missing if m.lower() in it_blob]
+                    if hits:
+                        matched_disabled_items.append((it, hits))
+
+            lines = [
+                f"Active CV Keyword Match: {len(matched)} / {len(kws)} terms",
+                f"\n[✓] MATCHED IN ACTIVE CV:\n  {', '.join(matched[:45])}",
+                f"\n[★] DISABLED ITEMS IN YOUR ARCHIVE THAT MATCH MISSING KEYWORDS ({len(matched_disabled_items)}):",
+            ]
+            for it, hits in matched_disabled_items:
+                lbl = it.get("title") or it.get("role") or it.get("category")
+                lines.append(f"  • [{it['section']}] {lbl}  --> Matches: {', '.join(hits)}")
+            lines.append(f"\n[✗] NOT FOUND ANYWHERE IN ARCHIVE:\n  {', '.join([m for m in missing if not any(m in h for _, h in matched_disabled_items)][:40])}")
+
+            out_box.delete("1.0", tk.END)
+            out_box.insert("1.0", "\n".join(lines))
+
+        def enable_matched_archived():
+            if not matched_disabled_items:
+                return
+            self._push_undo()
+            for it, _ in matched_disabled_items:
+                it["enabled"] = True
+            self.refresh_all(compile_pdf=self.auto_compile_var.get())
+            analyze()
+            self.status_lbl.config(text=f"Enabled {len(matched_disabled_items)} matching archived item(s).")
+
+        btn_row = tk.Frame(body, bg=COLORS["bg_card"])
+        btn_row.pack(fill=tk.X)
+        self._btn(btn_row, "🔍 Analyze JD", analyze, COLORS["primary"], COLORS["primary_hover"]).pack(side=tk.LEFT, padx=3)
+        self._btn(btn_row, "✓ Enable All Matching Archived Items", enable_matched_archived, COLORS["emerald"], COLORS["emerald_hover"]).pack(
+            side=tk.RIGHT, padx=3
+        )
+
+    # ------------------------------------------------------------------
+    # Tailored Add / Edit Item Modal with LaTeX Toolbar
     # ------------------------------------------------------------------
     def open_item_modal(self, item_type: str, edit_index: int | None = None):
         existing = self.items[edit_index] if edit_index is not None else {}
 
         dlg = tk.Toplevel(self.root)
         dlg.title(f"{'Edit' if edit_index is not None else 'Add'} {item_type.replace('_', ' ').title()}")
-        dlg.geometry("720x620")
+        dlg.geometry("740x640")
         dlg.configure(bg=COLORS["bg_card"])
         dlg.transient(self.root)
         dlg.grab_set()
@@ -1032,6 +1547,36 @@ class JosephResumeStudio:
         links_list: list[dict[str, str]] = copy.deepcopy(existing.get("links", []))
         bullets_box: tk.Text | None = None
 
+        def build_latex_helper_bar(parent_row: int, target_text_fn):
+            bar = tk.Frame(body, bg=COLORS["bg_card"])
+            bar.grid(row=parent_row, column=0, columnspan=2, sticky=tk.EW, pady=(6, 2))
+            tk.Label(bar, text="Bullets (indent with '  - ' for nested sub-items):", bg=COLORS["bg_card"], font=("Segoe UI", 9, "bold")).pack(side=tk.LEFT)
+
+            def wrap(pfx, sfx):
+                tb = target_text_fn()
+                if not tb:
+                    return
+                try:
+                    s, e = tb.index(tk.SEL_FIRST), tb.index(tk.SEL_LAST)
+                    sel = tb.get(s, e)
+                    tb.delete(s, e)
+                    tb.insert(s, f"{pfx}{sel}{sfx}")
+                except tk.TclError:
+                    tb.insert(tk.INSERT, f"{pfx}{sfx}")
+
+            for lbl, p, s in [
+                ("Bold", r"\textbf{", "}"),
+                ("Italic", r"\textit{", "}"),
+                ("$Math$", "$", "$"),
+                ("Superscript", r"\textsuperscript{", "}"),
+                ("Footnote", r"\footnote{", "}"),
+                ("Link", r"\hrefWithoutArrow{https://}{", "}"),
+            ]:
+                tk.Button(
+                    bar, text=lbl, command=lambda x=p, y=s: wrap(x, y),
+                    bg="#e2e8f0", fg="#0f172a", relief=tk.FLAT, font=("Segoe UI", 8, "bold"), padx=6, pady=2, cursor="hand2"
+                ).pack(side=tk.RIGHT, padx=2)
+
         if item_type == "project":
             add_entry(0, "Section Heading:", "section", "Personal Projects", all_secs)
             add_entry(1, "Bold Project Title:", "title", "Project Name, Short Tagline")
@@ -1039,9 +1584,8 @@ class JosephResumeStudio:
             add_entry(3, "Italicized Domain/Subtitle:", "subtitle_italic", "Design, Development, Machine Learning, Deployment")
             add_entry(4, "Tech Stack (\\item Stack:):", "stack", "Python, PyTorch, ReactJS")
 
-            # Multi-Link Builder for \item Access: \hrefWithoutArrow{url}{Label}
             link_frame = tk.LabelFrame(
-                body, text="Access Links (Generates: \\item Access: \\hrefWithoutArrow{url}{Label})", bg=COLORS["bg_card"], padx=8, pady=6
+                body, text="Access Links (\\item Access: \\hrefWithoutArrow{url}{Label})", bg=COLORS["bg_card"], padx=8, pady=6
             )
             link_frame.grid(row=5, column=0, columnspan=2, sticky=tk.EW, pady=6)
 
@@ -1076,10 +1620,8 @@ class JosephResumeStudio:
             self._btn(lk_ctrl, "+ Link", add_link, COLORS["primary"], COLORS["primary_hover"], pad=(8, 2)).pack(side=tk.LEFT, padx=2)
             self._btn(lk_ctrl, "Remove", del_link, COLORS["danger"], "#b91c1c", pad=(8, 2)).pack(side=tk.LEFT)
 
-            tk.Label(
-                body, text="Additional Highlights (Optional, 1 per line):", bg=COLORS["bg_card"], font=("Segoe UI", 9, "bold")
-            ).grid(row=6, column=0, columnspan=2, sticky=tk.W, pady=(6, 2))
-            bullets_box = tk.Text(body, height=4, font=("Segoe UI", 9), bg="#f8fafc", relief=tk.SOLID, bd=1)
+            build_latex_helper_bar(6, lambda: bullets_box)
+            bullets_box = tk.Text(body, height=5, font=("Segoe UI", 9), bg="#f8fafc", relief=tk.SOLID, bd=1)
             bullets_box.grid(row=7, column=0, columnspan=2, sticky=tk.NSEW)
             body.rowconfigure(7, weight=1)
             if existing.get("extra_bullets"):
@@ -1095,14 +1637,10 @@ class JosephResumeStudio:
             sub_v = tk.BooleanVar(value=existing.get("is_sub_role", False))
             bool_vars["is_sub_role"] = sub_v
             ttk.Checkbutton(
-                body,
-                text="Sub-role under preceding company (omit repeating company header)",
-                variable=sub_v,
+                body, text="Sub-role under preceding company (omit repeating company header)", variable=sub_v
             ).grid(row=5, column=0, columnspan=2, sticky=tk.W, pady=4)
 
-            tk.Label(body, text="Bullet Highlights (1 per line):", bg=COLORS["bg_card"], font=("Segoe UI", 9, "bold")).grid(
-                row=6, column=0, columnspan=2, sticky=tk.W, pady=(6, 2)
-            )
+            build_latex_helper_bar(6, lambda: bullets_box)
             bullets_box = tk.Text(body, height=8, font=("Segoe UI", 9), bg="#f8fafc", relief=tk.SOLID, bd=1)
             bullets_box.grid(row=7, column=0, columnspan=2, sticky=tk.NSEW)
             body.rowconfigure(7, weight=1)
@@ -1118,14 +1656,10 @@ class JosephResumeStudio:
             sub_d = tk.BooleanVar(value=existing.get("is_sub_degree", False))
             bool_vars["is_sub_degree"] = sub_d
             ttk.Checkbutton(
-                body,
-                text="Additional degree under same university above (omit repeating university title)",
-                variable=sub_d,
+                body, text="Additional degree under same university above (omit repeating university title)", variable=sub_d
             ).grid(row=4, column=0, columnspan=2, sticky=tk.W, pady=4)
 
-            tk.Label(body, text="Education Highlights / Grades (1 per line):", bg=COLORS["bg_card"], font=("Segoe UI", 9, "bold")).grid(
-                row=5, column=0, columnspan=2, sticky=tk.W, pady=(6, 2)
-            )
+            build_latex_helper_bar(5, lambda: bullets_box)
             bullets_box = tk.Text(body, height=8, font=("Segoe UI", 9), bg="#f8fafc", relief=tk.SOLID, bd=1)
             bullets_box.grid(row=6, column=0, columnspan=2, sticky=tk.NSEW)
             body.rowconfigure(6, weight=1)
@@ -1140,23 +1674,19 @@ class JosephResumeStudio:
         elif item_type == "skill_group":
             add_entry(0, "Section Heading:", "section", "Proficiency and Tools", all_secs)
             add_entry(1, "Bold Category Heading:", "category", "Quantum & AI Frameworks")
-            tk.Label(body, text="Bullet Lines (1 bullet line per row):", bg=COLORS["bg_card"], font=("Segoe UI", 9, "bold")).grid(
-                row=2, column=0, columnspan=2, sticky=tk.W, pady=(8, 2)
-            )
+            build_latex_helper_bar(2, lambda: bullets_box)
             bullets_box = tk.Text(body, height=10, font=("Segoe UI", 9), bg="#f8fafc", relief=tk.SOLID, bd=1)
             bullets_box.grid(row=3, column=0, columnspan=2, sticky=tk.NSEW)
             body.rowconfigure(3, weight=1)
             if existing.get("bullets"):
                 bullets_box.insert("1.0", "\n".join(existing["bullets"]))
 
-        else:  # custom section entry
+        else:  # custom section item
             add_entry(0, "New or Existing Section Name:", "section", "Publications & Research", all_secs)
             add_entry(1, "Bold Primary Title:", "title", "")
             add_entry(2, "Italicized Subtitle (Optional):", "subtitle_italic", "")
             add_entry(3, "Date / Location (Right Column):", "date", "2026")
-            tk.Label(body, text="Bullet Highlights (1 per line):", bg=COLORS["bg_card"], font=("Segoe UI", 9, "bold")).grid(
-                row=4, column=0, columnspan=2, sticky=tk.W, pady=(6, 2)
-            )
+            build_latex_helper_bar(4, lambda: bullets_box)
             bullets_box = tk.Text(body, height=8, font=("Segoe UI", 9), bg="#f8fafc", relief=tk.SOLID, bd=1)
             bullets_box.grid(row=5, column=0, columnspan=2, sticky=tk.NSEW)
             body.rowconfigure(5, weight=1)
@@ -1167,7 +1697,9 @@ class JosephResumeStudio:
         footer.pack(fill=tk.X, side=tk.BOTTOM)
 
         def save_modal():
+            self._push_undo()
             new_item = {
+                "uid": existing.get("uid", f"item_{len(self.items) + 1}_{os.urandom(2).hex()}"),
                 "enabled": existing.get("enabled", True),
                 "type": item_type,
             }
@@ -1176,24 +1708,16 @@ class JosephResumeStudio:
             for k, bv in bool_vars.items():
                 new_item[k] = bv.get()
 
+            raw_lines = [ln.rstrip() for ln in bullets_box.get("1.0", tk.END).splitlines() if ln.strip()] if bullets_box else []
+
             if item_type == "project":
                 new_item["links"] = links_list
-                new_item["extra_bullets"] = (
-                    [ln.strip() for ln in bullets_box.get("1.0", tk.END).splitlines() if ln.strip()]
-                    if bullets_box
-                    else []
-                )
+                new_item["extra_bullets"] = raw_lines
             elif item_type == "education":
                 new_item["links"] = existing.get("links", [])
-                new_item["bullets"] = (
-                    [ln.strip() for ln in bullets_box.get("1.0", tk.END).splitlines() if ln.strip()]
-                    if bullets_box
-                    else []
-                )
+                new_item["bullets"] = raw_lines
             elif bullets_box is not None:
-                new_item["bullets"] = [
-                    ln.strip() for ln in bullets_box.get("1.0", tk.END).splitlines() if ln.strip()
-                ]
+                new_item["bullets"] = raw_lines
 
             sec = new_item.get("section") or "Other"
             if sec not in self.section_order:
@@ -1247,6 +1771,7 @@ class JosephResumeStudio:
             vmap[k] = v
 
         def save():
+            self._push_undo()
             for k, v in vmap.items():
                 self.header[k] = v.get().strip()
             dlg.destroy()
@@ -1259,7 +1784,7 @@ class JosephResumeStudio:
     def open_profile_modal(self):
         dlg = tk.Toplevel(self.root)
         dlg.title("Professional Profile Switcher & Editor")
-        dlg.geometry("700x460")
+        dlg.geometry("720x470")
         dlg.configure(bg=COLORS["bg_card"])
         dlg.transient(self.root)
         dlg.grab_set()
@@ -1271,11 +1796,11 @@ class JosephResumeStudio:
         top_row.pack(fill=tk.X, pady=(0, 8))
 
         en_var = tk.BooleanVar(value=self.profile_enabled)
-        ttk.Checkbutton(top_row, text="Include 'Professional Profile' Section in CV", variable=en_var).pack(side=tk.LEFT)
+        ttk.Checkbutton(top_row, text="Include 'Professional Profile' Section", variable=en_var).pack(side=tk.LEFT)
 
         prof_names = [p["name"] for p in self.profiles]
         sel_var = tk.StringVar(value=prof_names[self.active_profile_idx])
-        combo = ttk.Combobox(top_row, textvariable=sel_var, values=prof_names, width=42, state="readonly")
+        combo = ttk.Combobox(top_row, textvariable=sel_var, values=prof_names, width=44, state="readonly")
         combo.pack(side=tk.RIGHT)
 
         txt = tk.Text(body, font=("Segoe UI", 10), wrap=tk.WORD, bg="#f8fafc", relief=tk.SOLID, bd=1, padx=10, pady=8)
@@ -1290,6 +1815,7 @@ class JosephResumeStudio:
         combo.bind("<<ComboboxSelected>>", on_pick)
 
         def save():
+            self._push_undo()
             idx = prof_names.index(sel_var.get())
             self.active_profile_idx = idx
             self.profile_enabled = en_var.get()
@@ -1324,6 +1850,7 @@ class JosephResumeStudio:
             i = sel[0]
             j = i + d
             if 0 <= j < len(self.section_order):
+                self._push_undo()
                 self.section_order[i], self.section_order[j] = self.section_order[j], self.section_order[i]
                 lb.delete(0, tk.END)
                 for s in self.section_order:
@@ -1343,64 +1870,103 @@ class JosephResumeStudio:
         ).pack(side=tk.RIGHT)
 
     # ------------------------------------------------------------------
-    # Table Row Operations
+    # Multi-Select Table Operations
     # ------------------------------------------------------------------
-    def _selected_real_idx(self) -> int | None:
-        sel = self.tree.selection()
-        if not sel:
-            return None
-        t_idx = self.tree.index(sel[0])
-        return self.visible_indices[t_idx] if 0 <= t_idx < len(self.visible_indices) else None
+    def _selected_real_indices(self) -> list[int]:
+        out = []
+        for iid in self.tree.selection():
+            t_idx = self.tree.index(iid)
+            if 0 <= t_idx < len(self.visible_indices):
+                out.append(self.visible_indices[t_idx])
+        return out
 
     def on_tree_select(self, _e=None):
-        r_idx = self._selected_real_idx()
+        idxs = self._selected_real_indices()
         self.code_text.tag_remove("active_block", "1.0", tk.END)
-        if r_idx is not None and r_idx in self.item_line_map:
-            s_ln, e_ln = self.item_line_map[r_idx]
+        if idxs and idxs[0] in self.item_line_map:
+            s_ln, e_ln = self.item_line_map[idxs[0]]
             self.code_text.tag_add("active_block", f"{s_ln}.0", f"{e_ln}.end")
             self.code_text.see(f"{max(1, s_ln - 3)}.0")
 
     def edit_selected(self):
-        r_idx = self._selected_real_idx()
-        if r_idx is not None:
-            self.open_item_modal(self.items[r_idx].get("type", "custom"), edit_index=r_idx)
+        idxs = self._selected_real_indices()
+        if idxs:
+            self.open_item_modal(self.items[idxs[0]].get("type", "custom"), edit_index=idxs[0])
 
     def toggle_selected(self):
-        r_idx = self._selected_real_idx()
-        if r_idx is not None:
+        idxs = self._selected_real_indices()
+        if not idxs:
+            return
+        self._push_undo()
+        for r_idx in idxs:
             self.items[r_idx]["enabled"] = not self.items[r_idx].get("enabled", True)
-            self.refresh_all(compile_pdf=self.auto_compile_var.get(), select_real_idx=r_idx)
+        self.refresh_all(compile_pdf=self.auto_compile_var.get(), select_real_indices=idxs)
 
     def clone_selected(self):
-        r_idx = self._selected_real_idx()
-        if r_idx is not None:
-            c = copy.deepcopy(self.items[r_idx])
-            for k in ("title", "company", "institution", "category"):
-                if k in c:
-                    c[k] = f"{c[k]} (Copy)"
-                    break
-            self.items.insert(r_idx + 1, c)
-            self.refresh_all(compile_pdf=self.auto_compile_var.get(), select_real_idx=r_idx + 1)
+        idxs = self._selected_real_indices()
+        if not idxs:
+            return
+        self._push_undo()
+        r_idx = idxs[0]
+        c = copy.deepcopy(self.items[r_idx])
+        c["uid"] = f"clone_{os.urandom(3).hex()}"
+        for k in ("title", "company", "institution", "category"):
+            if k in c:
+                c[k] = f"{c[k]} (Copy)"
+                break
+        self.items.insert(r_idx + 1, c)
+        self.refresh_all(compile_pdf=self.auto_compile_var.get(), select_real_indices=[r_idx + 1])
 
     def move_selected(self, delta: int):
-        r_idx = self._selected_real_idx()
-        if r_idx is not None and 0 <= r_idx + delta < len(self.items):
+        idxs = self._selected_real_indices()
+        if len(idxs) != 1:
+            return
+        r_idx = idxs[0]
+        if 0 <= r_idx + delta < len(self.items):
+            self._push_undo()
             self.items[r_idx], self.items[r_idx + delta] = self.items[r_idx + delta], self.items[r_idx]
-            self.refresh_all(compile_pdf=self.auto_compile_var.get(), select_real_idx=r_idx + delta)
+            self.refresh_all(compile_pdf=self.auto_compile_var.get(), select_real_indices=[r_idx + delta])
 
     def delete_selected(self):
-        r_idx = self._selected_real_idx()
-        if r_idx is not None:
+        idxs = self._selected_real_indices()
+        if not idxs:
+            return
+        self._push_undo()
+        for r_idx in sorted(idxs, reverse=True):
             del self.items[r_idx]
-            self.refresh_all(compile_pdf=self.auto_compile_var.get())
+        self.refresh_all(compile_pdf=self.auto_compile_var.get())
 
     # ------------------------------------------------------------------
-    # Exact LaTeX Generator (Matching Your resume.tex Byte-for-Byte Style)
+    # LaTeX Bullet Renderer (Supports Nested Sub-Bullets like SADLDAS)
+    # ------------------------------------------------------------------
+    def _render_bullet_lines(self, bullets: list[str], base_indent: str) -> list[str]:
+        out = []
+        in_sub = False
+        for raw_b in bullets:
+            is_sub = raw_b.startswith(("  -", "\t-", "  *", "    "))
+            clean_txt = re.sub(r"^(\s*[-\*]\s*|\s+)", "", raw_b) if is_sub else raw_b.strip()
+            esc_txt = smart_escape_latex(clean_txt)
+            if is_sub and not in_sub:
+                out.append(f"{base_indent}    \\begin{{itemize}}[leftmargin=1.2em,topsep=0pt,itemsep=0pt,parsep=0pt]")
+                in_sub = True
+            elif not is_sub and in_sub:
+                out.append(f"{base_indent}    \\end{{itemize}}")
+                in_sub = False
+
+            if is_sub:
+                out.append(f"{base_indent}        \\item {esc_txt}")
+            else:
+                out.append(f"{base_indent}\\item {esc_txt}")
+
+        if in_sub:
+            out.append(f"{base_indent}    \\end{{itemize}}")
+        return out
+
+    # ------------------------------------------------------------------
+    # Exact LaTeX Document Generator
     # ------------------------------------------------------------------
     def generate_latex(self) -> str:
-        preamble = EXACT_PREAMBLE.replace(
-            "Joseph Emmanuel Chay Huan Qin", smart_escape_latex(self.header.get("footer_name", ""))
-        )
+        preamble = build_exact_preamble(self.layout, self.header.get("footer_name", ""))
         lines = preamble.rstrip().splitlines()
         lines.append("")
         lines.append(r"\begin{document}")
@@ -1434,7 +2000,6 @@ class JosephResumeStudio:
         lines.append(r"        \kern 0.25cm%")
         lines.append(r"    \end{header}")
 
-        # Group items by Section
         self.item_line_map.clear()
         grouped: dict[str, list[tuple[int, dict]]] = {}
         for r_idx, it in enumerate(self.items):
@@ -1451,7 +2016,7 @@ class JosephResumeStudio:
                     continue
                 prof_txt = smart_escape_latex(self.profiles[self.active_profile_idx]["text"])
                 lines.append("")
-                lines.append(r"    % PROFESSIONAL PROFILE")
+                lines.append(r"    % PROFESSIONAL SUMMARY")
                 lines.append(r"    \section{Professional Profile}")
                 lines.append("")
                 lines.append(r"    \begin{firstprojectentry}")
@@ -1530,8 +2095,7 @@ class JosephResumeStudio:
                         lines.append(r"    \vspace{0.10cm}")
                         lines.append(r"    \begin{onecolentry}")
                         lines.append(r"        \begin{highlights}")
-                        for b in all_b:
-                            lines.append(rf"            \item {smart_escape_latex(b)}")
+                        lines.extend(self._render_bullet_lines(all_b, "            "))
                         lines.append(r"        \end{highlights}")
                         lines.append(r"    \end{onecolentry}")
                     lines.append(r"    \end{projectentry}")
@@ -1562,8 +2126,7 @@ class JosephResumeStudio:
                         lines.append(r"    \vspace{0.10cm}")
                         lines.append(r"    \begin{onecolentry}")
                         lines.append(r"        \begin{highlights}")
-                        for b in it["bullets"]:
-                            lines.append(rf"            \item {smart_escape_latex(b)}")
+                        lines.extend(self._render_bullet_lines(it["bullets"], "            "))
                         lines.append(r"        \end{highlights}")
                         lines.append(r"    \end{onecolentry}")
                     lines.append(r"    \end{projectentry}")
@@ -1607,8 +2170,8 @@ class JosephResumeStudio:
                             for lk in links
                         )
                         lines.append(rf"            \item Access: {lk_joined}")
-                    for eb in it.get("extra_bullets", []):
-                        lines.append(rf"            \item {smart_escape_latex(eb)}")
+                    if it.get("extra_bullets"):
+                        lines.extend(self._render_bullet_lines(it["extra_bullets"], "            "))
                     lines.append(r"        \end{highlights}")
                     lines.append(r"    \end{onecolentry}")
                     lines.append(rf"    \end{{{env}}}")
@@ -1626,8 +2189,7 @@ class JosephResumeStudio:
                     lines.append(r"    \vspace{0.10cm}")
                     lines.append(r"    \begin{onecolentry}")
                     lines.append(r"        \begin{highlights}")
-                    for b in it.get("bullets", []):
-                        lines.append(rf"            \item {smart_escape_latex(b)}")
+                    lines.extend(self._render_bullet_lines(it.get("bullets", []), "            "))
                     lines.append(r"        \end{highlights}")
                     lines.append(r"    \end{onecolentry}")
                     lines.append(rf"    \end{{{env}}}")
@@ -1651,8 +2213,7 @@ class JosephResumeStudio:
                         lines.append(r"    \vspace{0.10cm}")
                         lines.append(r"    \begin{onecolentry}")
                         lines.append(r"        \begin{highlights}")
-                        for b in it["bullets"]:
-                            lines.append(rf"            \item {smart_escape_latex(b)}")
+                        lines.extend(self._render_bullet_lines(it["bullets"], "            "))
                         lines.append(r"        \end{highlights}")
                         lines.append(r"    \end{onecolentry}")
                     lines.append(rf"    \end{{{env}}}")
@@ -1681,9 +2242,69 @@ class JosephResumeStudio:
                 self.code_text.tag_add("math", f"{idx}.{m.start()}", f"{idx}.{m.end()}")
 
     # ------------------------------------------------------------------
-    # Refresh, Save, Compile & Log Inspection
+    # Embedded Visual PDF Renderer (PyMuPDF or pdftoppm)
     # ------------------------------------------------------------------
-    def refresh_all(self, compile_pdf: bool = False, select_real_idx: int | None = None):
+    def _render_pdf_pages(self):
+        if not os.path.exists(PDF_FILE):
+            return
+        self.pdf_images.clear()
+        try:
+            if HAS_PYMUPDF:
+                doc = fitz.open(PDF_FILE)
+                mat = fitz.Matrix(self.pdf_zoom, self.pdf_zoom)
+                for page in doc:
+                    pix = page.get_pixmap(matrix=mat)
+                    img = tk.PhotoImage(data=pix.tobytes("ppm"))
+                    self.pdf_images.append(img)
+                doc.close()
+            elif shutil.which("pdftoppm"):
+                dpi = int(110 * self.pdf_zoom)
+                with tempfile.TemporaryDirectory() as tmpdir:
+                    prefix = os.path.join(tmpdir, "page")
+                    subprocess.run(["pdftoppm", "-png", "-r", str(dpi), PDF_FILE, prefix], check=True)
+                    for png in sorted(glob.glob(f"{prefix}-*.png")):
+                        self.pdf_images.append(tk.PhotoImage(file=png))
+            else:
+                self.pdf_canvas.delete("all")
+                self.pdf_canvas.create_text(
+                    260,
+                    160,
+                    text="In-app PDF preview requires PyMuPDF (pip install pymupdf)\nor Poppler 'pdftoppm' in PATH.\n\nClick 'External PDF' in the top bar to view resume.pdf.",
+                    fill="#1e293b",
+                    font=("Segoe UI", 10, "bold"),
+                    justify=tk.CENTER,
+                )
+                return
+
+            if self.pdf_images:
+                self.pdf_page_idx = max(0, min(self.pdf_page_idx, len(self.pdf_images) - 1))
+                self._draw_current_pdf_page()
+        except Exception as e:
+            self.status_lbl.config(text=f"PDF preview notice: {e}")
+
+    def _draw_current_pdf_page(self):
+        if not self.pdf_images:
+            return
+        self.pdf_canvas.delete("all")
+        img = self.pdf_images[self.pdf_page_idx]
+        self.pdf_canvas.create_image(20, 20, anchor=tk.NW, image=img)
+        self.pdf_canvas.configure(scrollregion=(0, 0, img.width() + 40, img.height() + 40))
+        self.pdf_page_lbl.config(text=f"Page {self.pdf_page_idx + 1} / {len(self.pdf_images)}")
+
+    def _change_pdf_page(self, delta: int):
+        if not self.pdf_images:
+            return
+        self.pdf_page_idx = max(0, min(self.pdf_page_idx + delta, len(self.pdf_images) - 1))
+        self._draw_current_pdf_page()
+
+    def _zoom_pdf(self, delta: float):
+        self.pdf_zoom = max(0.6, min(2.4, self.pdf_zoom + delta))
+        self._render_pdf_pages()
+
+    # ------------------------------------------------------------------
+    # Refresh, Persistence, Compile & Log Telemetry
+    # ------------------------------------------------------------------
+    def refresh_all(self, compile_pdf: bool = False, select_real_indices: list[int] | None = None):
         self.contact_banner_lbl.config(
             text=f"{self.header['phone']}   •   {self.header['email']}   •   {self.header['github_disp']}"
         )
@@ -1699,9 +2320,16 @@ class JosephResumeStudio:
         self.visible_indices.clear()
         q = self.search_var.get().strip().lower()
         sec_f = self.filter_sec_var.get()
-        iid_to_select = None
+        st_f = self.filter_state_var.get()
+        iids_to_select = []
 
         for r_idx, it in enumerate(self.items):
+            en = it.get("enabled", True)
+            if st_f == "Active Only (✓)" and not en:
+                continue
+            if st_f == "Archived / Commented (✗)" and en:
+                continue
+
             sec = it.get("section", "Other")
             if sec_f != "All Sections" and sec != sec_f:
                 continue
@@ -1720,24 +2348,23 @@ class JosephResumeStudio:
                 continue
 
             self.visible_indices.append(r_idx)
-            en = it.get("enabled", True)
             iid = self.tree.insert(
                 "",
                 tk.END,
                 values=("✓" if en else "✗", sec, title_disp, detail_disp, date_disp),
                 tags=("on" if en else "off",),
             )
-            if select_real_idx == r_idx:
-                iid_to_select = iid
+            if select_real_indices and r_idx in select_real_indices:
+                iids_to_select.append(iid)
 
         active_cnt = sum(1 for i in self.items if i.get("enabled", True))
-        self.stats_lbl.config(text=f"Active Entries: {active_cnt} / {len(self.items)}")
+        self.stats_lbl.config(text=f"Active: {active_cnt} / {len(self.items)}")
 
         tex = self.generate_latex()
         self._highlight_syntax(tex)
 
-        if iid_to_select:
-            self.tree.selection_set(iid_to_select)
+        if iids_to_select:
+            self.tree.selection_set(iids_to_select)
             self.on_tree_select()
 
         self._save_state()
@@ -1755,19 +2382,7 @@ class JosephResumeStudio:
     def _save_state(self):
         try:
             with open(DATA_FILE, "w", encoding="utf-8") as f:
-                json.dump(
-                    {
-                        "header": self.header,
-                        "profiles": self.profiles,
-                        "active_profile_idx": self.active_profile_idx,
-                        "profile_enabled": self.profile_enabled,
-                        "section_order": self.section_order,
-                        "items": self.items,
-                    },
-                    f,
-                    indent=2,
-                    ensure_ascii=False,
-                )
+                f.write(self._serialize())
         except Exception:
             pass
 
@@ -1775,13 +2390,7 @@ class JosephResumeStudio:
         if os.path.exists(DATA_FILE):
             try:
                 with open(DATA_FILE, "r", encoding="utf-8") as f:
-                    d = json.load(f)
-                self.header = d.get("header", self.header)
-                self.profiles = d.get("profiles", self.profiles)
-                self.active_profile_idx = d.get("active_profile_idx", self.active_profile_idx)
-                self.profile_enabled = d.get("profile_enabled", self.profile_enabled)
-                self.section_order = d.get("section_order", self.section_order)
-                self.items = d.get("items", self.items)
+                    self._deserialize(f.read())
             except Exception:
                 pass
 
@@ -1814,11 +2423,12 @@ class JosephResumeStudio:
                     timeout=35,
                 )
                 self.root.after(0, self._inspect_log)
+                self.root.after(0, self._render_pdf_pages)
                 if proc.returncode == 0:
-                    self.root.after(0, lambda: self.status_lbl.config(text="✓ Successfully compiled resume.pdf!"))
+                    self.root.after(0, lambda: self.status_lbl.config(text="✓ Compiled resume.pdf successfully!"))
                 else:
                     self.root.after(
-                        0, lambda: self.status_lbl.config(text=f"⚠ pdflatex finished with code {proc.returncode}.")
+                        0, lambda: self.status_lbl.config(text=f"⚠ pdflatex exited with code {proc.returncode}.")
                     )
             except FileNotFoundError:
                 self.root.after(0, lambda: self.status_lbl.config(text="Error: 'pdflatex' not found in PATH."))
@@ -1846,19 +2456,18 @@ class JosephResumeStudio:
             pass
 
     def open_pdf(self):
-        if not os.path.exists("resume.pdf"):
+        if not os.path.exists(PDF_FILE):
             messagebox.showinfo("No PDF Yet", "Click 'Compile PDF' first to build resume.pdf.")
             return
         if sys.platform.startswith("win"):
-            os.startfile("resume.pdf")
+            os.startfile(PDF_FILE)
         elif sys.platform == "darwin":
-            subprocess.Popen(["open", "resume.pdf"])
+            subprocess.Popen(["open", PDF_FILE])
         else:
-            subprocess.Popen(["xdg-open", "resume.pdf"])
+            subprocess.Popen(["xdg-open", PDF_FILE])
 
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = JosephResumeStudio(root)
+    app = JosephResumeStudioV2(root)
     root.mainloop()
-    
