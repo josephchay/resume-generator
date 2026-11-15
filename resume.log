@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.4) (preloaded format=pdflatex 2026.6.30)  15 NOV 2026 02:15
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.4) (preloaded format=pdflatex 2026.6.30)  15 NOV 2026 13:54
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -571,29 +571,29 @@ vailable
 (Font)              Font shape `U/fontawesomebrands0/regular/n' tried instead o
 n input line 138.
 LaTeX Font Info:    Trying to load font information for OML+lmm on input line 2
-17.
+18.
 
 (C:\Users\User\AppData\Local\Programs\MiKTeX\tex/latex/lm\omllmm.fd
 File: omllmm.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for OMS+lmsy on input line 
-217.
+218.
 
 (C:\Users\User\AppData\Local\Programs\MiKTeX\tex/latex/lm\omslmsy.fd
 File: omslmsy.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for OMX+lmex on input line 
-217.
+218.
 
 (C:\Users\User\AppData\Local\Programs\MiKTeX\tex/latex/lm\omxlmex.fd
 File: omxlmex.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 217.
+(Font)              <10> on input line 218.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 217.
+(Font)              <7> on input line 218.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 217.
+(Font)              <5> on input line 218.
 
 
 [1
@@ -623,7 +623,7 @@ Here is how much of TeX's memory you used:
  43955 multiletter control sequences out of 15000+600000
  664078 words of font info for 60 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,11n,79p,360b,563s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,11n,79p,360b,691s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <C:/Users/User/AppData/Local/Programs/MiKTeX/fonts/type1/public/fontawesome5/
 FontAwesome5Brands-Regular.pfb><C:/Users/User/AppData/Local/Programs/MiKTeX/fon
 ts/type1/public/fontawesome5/FontAwesome5Free-Regular.pfb><C:/Users/User/AppDat
@@ -635,7 +635,7 @@ b><C:/Users/User/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmr10.pfb>
 C:/Users/User/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmri7.pfb><C:
 /Users/User/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmri9.pfb><C:/U
 sers/User/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy10.pfb>
-Output written on resume.pdf (3 pages, 197956 bytes).
+Output written on resume.pdf (3 pages, 198222 bytes).
 PDF statistics:
  122 PDF objects out of 1000 (max. 8388607)
  11 named destinations out of 1000 (max. 500000)
